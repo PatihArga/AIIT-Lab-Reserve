@@ -11,64 +11,37 @@
 
 <div class="min-h-screen grid lg:grid-cols-[1.05fr_1fr]">
 
-    {{-- LEFT: Brand panel --}}
-    <aside class="relative hidden lg:flex flex-col justify-between overflow-hidden bg-ink-900 text-white p-14">
-        {{-- Blueprint grid texture --}}
-        <div class="absolute inset-0 bg-grid-light pointer-events-none opacity-50"></div>
+    {{-- LEFT: Brand panel with Lab Photo --}}
+    <aside class="relative hidden lg:flex flex-col justify-between overflow-hidden p-14 bg-cover bg-center" style="background-image: url('{{ asset('images/labkom.png') }}');">
+        
+        {{-- Overlays for contrast and brand colors --}}
+        <div class="absolute inset-0 bg-ink-900/70 mix-blend-multiply"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/40 to-transparent opacity-90"></div>
 
         {{-- Yellow mark strip — top-left --}}
-        <div class="absolute top-0 left-0 h-1.5 w-32 bg-mark-500 shadow-[0_0_20px_rgba(245,184,0,0.5)]"></div>
-
-        {{-- Atmospheric blobs with subtle animation --}}
-        <div class="absolute -top-32 -right-32 w-[30rem] h-[30rem] rounded-full bg-ink-500/30 blur-[80px] animate-pulse-slow"></div>
-        <div class="absolute bottom-0 right-0 w-[25rem] h-[25rem] rounded-full bg-mark-500/15 blur-[80px] animate-pulse-slow" style="animation-delay: 2s;"></div>
-        <div class="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] rounded-full bg-ink-400/10 blur-[100px] animate-float pointer-events-none"></div>
+        <div class="absolute top-0 left-0 h-1.5 w-32 bg-mark-500 shadow-[0_0_20px_rgba(245,184,0,0.5)] z-20"></div>
 
         <div class="relative z-10 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-mark-400 to-mark-600 shadow-lg shadow-mark-500/30 text-ink-900 flex items-center justify-center font-bold text-xl ring-1 ring-white/20">
-                LR
-            </div>
-            <div>
+            <img src="{{ asset('images/ukrida_logo.png') }}" alt="UKRIDA Logo" class="h-16 w-auto drop-shadow-lg">
+            <div class="border-l border-white/20 pl-4">
                 <div class="text-[0.65rem] uppercase tracking-label text-mark-400 font-bold mb-0.5">UKRIDA</div>
                 <div class="text-lg font-semibold tracking-tight text-white/95">Lab Reserve</div>
             </div>
         </div>
 
-        <div class="relative z-10 max-w-md">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[0.65rem] uppercase tracking-label text-white/70 font-semibold mb-6 backdrop-blur-sm">
+        <div class="relative z-10 max-w-md mt-auto">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[0.65rem] uppercase tracking-label text-white/90 font-semibold mb-6 backdrop-blur-md">
                 <span class="w-1.5 h-1.5 rounded-full bg-mark-500 animate-pulse"></span>
                 Sistem Reservasi
             </div>
-            <h1 class="font-display text-[3.25rem] leading-[1.05] font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70">
-                Penjadwalan<br>
-                yang <span class="relative inline-block text-white">
-                    <span class="relative z-10">tepat</span>
-                    <span class="absolute inset-x-0 bottom-2 h-4 bg-mark-500/40 -z-0 -rotate-1 scale-105"></span>
-                </span>,<br>
-                untuk lab yang sibuk.
+            <h1 class="font-display text-[3.25rem] leading-[1.05] font-bold tracking-tight text-white mb-2">
+                Lab Komputer<br>
+                <span class="text-mark-400">UKRIDA</span>
             </h1>
-            <p class="mt-6 text-base text-white/60 leading-relaxed max-w-sm font-medium">
-                Reservasi terpadu untuk dosen dan tim mahasiswa Universitas Kristen Krida Wacana — satu lab, sembilan unit, satu dasbor.
-            </p>
         </div>
 
-        <div class="relative z-10 grid grid-cols-3 gap-6 max-w-md pt-8 border-t border-white/10">
-            <div class="group">
-                <div class="font-mono text-3xl text-white font-semibold transition-transform group-hover:-translate-y-1">9</div>
-                <div class="text-[0.65rem] uppercase tracking-label text-white/40 mt-2 font-medium">Unit</div>
-            </div>
-            <div class="group">
-                <div class="font-mono text-3xl text-mark-400 font-semibold transition-transform group-hover:-translate-y-1">14h</div>
-                <div class="text-[0.65rem] uppercase tracking-label text-white/40 mt-2 font-medium">Per Hari</div>
-            </div>
-            <div class="group">
-                <div class="font-mono text-3xl text-white font-semibold transition-transform group-hover:-translate-y-1">6</div>
-                <div class="text-[0.65rem] uppercase tracking-label text-white/40 mt-2 font-medium">Hari/Mgg</div>
-            </div>
-        </div>
-
-        <div class="relative z-10 text-[0.65rem] uppercase tracking-label text-white/30 font-semibold">
-            © {{ date('Y') }} · UKRIDA
+        <div class="relative z-10 text-[0.65rem] uppercase tracking-label text-white/50 font-semibold mt-12">
+            © {{ date('Y') }} · FTI UKRIDA
         </div>
     </aside>
 
