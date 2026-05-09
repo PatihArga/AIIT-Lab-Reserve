@@ -3,7 +3,8 @@
 @push('styles')
 <style>
 /* ── CALENDAR ─────────────────────────────────────────────── */
-.cal-body { display: grid; grid-template-columns: 1fr 1px 1fr; align-items: start; }
+.cal-body { display: grid; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 768px) { .cal-body { grid-template-columns: 1fr 1px 1fr; } }
 .cal-grid-panel { padding: 12px 16px 16px; }
 .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
 .cal-wd { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(10,26,71,.38); padding: 4px 0; }
@@ -20,7 +21,10 @@
 .cal-nav-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(10,26,71,.38); transition: background .15s, color .15s; }
 .cal-nav-btn:hover { background: #FAFAF7; color: #0A1A47; }
 .cal-nav-btn svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cal-slots-panel { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 340px; }
+.cal-slots-panel { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 300px; border-top: 1px solid rgba(15,36,96,.08); }
+@media (min-width: 768px) { .cal-slots-panel { border-top: none; max-height: 340px; } }
+.cal-divider { display: none; }
+@media (min-width: 768px) { .cal-divider { display: block; background: rgba(15,36,96,.08); } }
 .cal-slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
 .cal-slot { padding: 7px 8px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: #FAFAF7; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: background .15s, border-color .15s, color .15s, transform .1s; overflow: hidden; }
 .cal-slot:hover { border-color: #DBEAFE; background: #fff; }
@@ -105,19 +109,22 @@
 @endpush
 
     <x-slot:header>
-        <x-page-header
-            eyebrow="Beranda"
-            :title="'Halo, ' . explode(' ', Auth::user()->name)[0] . '.'"
-            meta="Sesi berikutnya: Selasa, 12 Mei · 09:00 — 12:00 (Tim Alpha)">
-
-            <x-slot:actions>
-                <a href="#" class="btn-ghost btn-sm">Lihat Riwayat</a>
-                <a href="#" class="btn-mark btn-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Buat Reservasi
-                </a>
-            </x-slot:actions>
-        </x-page-header>
+        <div class="pb-5 mb-0 border-b border-rule">
+            <div class="text-[0.7rem] font-semibold uppercase tracking-label text-mark-600 mb-1">Beranda</div>
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div>
+                    <h2 class="font-display text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">Halo, {{ explode(' ', Auth::user()->name)[0] }}.</h2>
+                    <p class="mt-1 text-xs sm:text-sm text-ink-700/60">Sesi berikutnya: Selasa, 12 Mei · 09:00 — 12:00 (Tim Alpha)</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="#" class="btn-ghost btn-sm">Lihat Riwayat</a>
+                    <a href="#" class="btn-mark btn-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Buat Reservasi
+                    </a>
+                </div>
+            </div>
+        </div>
     </x-slot:header>
 
     {{-- ── STAT CARDS ── --}}
@@ -205,7 +212,7 @@
                 <div class="cal-days" id="cal-days"></div>
             </div>
 
-            <div style="background:rgba(15,36,96,.08);"></div>
+            <div class="cal-divider"></div>
 
             <div class="cal-slots-panel">
                 <div class="flex items-center justify-between gap-2 shrink-0">
@@ -216,7 +223,7 @@
                     </div>
                 </div>
                 <div class="cal-slots-grid" id="cal-slots-grid">
-                    <div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">&#8592; Pilih tanggal di sebelah kiri</div>
+                    <div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">&#8595; Pilih tanggal di atas</div>
                 </div>
             </div>
         </div>
@@ -238,7 +245,7 @@
                     <div class="pill-tab" onclick="switchBookingTab(this,'selesai')">Selesai</div>
                 </div>
             </div>
-            <div class="px-5 pb-5 pt-3">
+            <div class="px-3 sm:px-5 pb-5 pt-3 overflow-x-auto">
                 <table class="bookings-tbl">
                     <thead>
                         <tr>
