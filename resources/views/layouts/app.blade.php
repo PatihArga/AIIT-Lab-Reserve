@@ -36,7 +36,7 @@
     </button>
 
     {{-- Main content wrapper --}}
-    <div :class="sidebarOpen ? 'lg:ml-shell' : 'lg:ml-0'" class="min-h-screen flex flex-col transition-all duration-200 pb-16 lg:pb-0">
+    <div :class="sidebarOpen ? 'lg:ml-shell' : 'lg:ml-0'" class="min-h-screen flex flex-col transition-all duration-200">
 
         {{-- Mobile top bar --}}
         <header class="sticky top-0 z-10 flex lg:hidden items-center gap-3 px-4 py-3 bg-white/90 backdrop-blur-md border-b border-rule">
@@ -86,24 +86,9 @@
 
     </div>
 
-    {{-- Mobile bottom navigation --}}
-    <nav class="fixed bottom-0 inset-x-0 z-30 lg:hidden bg-white/95 backdrop-blur-md border-t border-rule flex items-center justify-around px-2 py-1 safe-area-bottom">
-        <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl text-ink-700/50 {{ request()->routeIs('dashboard') ? 'text-ink-900 bg-ink-50' : '' }} transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            <span class="text-[10px] font-semibold">Beranda</span>
-        </a>
-        <a href="{{ route('booking.create') }}" class="flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl text-ink-700/50 {{ request()->routeIs('booking.create') ? 'text-ink-900 bg-ink-50' : '' }} transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-            <span class="text-[10px] font-semibold">Reservasi</span>
-        </a>
-        <a href="{{ route('booking.history') }}" class="flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl text-ink-700/50 {{ request()->routeIs('booking.history') || request()->routeIs('booking.show') ? 'text-ink-900 bg-ink-50' : '' }} transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span class="text-[10px] font-semibold">Riwayat</span>
-        </a>
-    </nav>
 
     {{-- Toast container --}}
-    <div id="toast-root" class="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2"></div>
+    <div id="toast-root" class="fixed bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2"></div>
 
     @stack('scripts')
 </body>
