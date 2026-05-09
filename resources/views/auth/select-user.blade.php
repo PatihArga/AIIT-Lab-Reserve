@@ -15,9 +15,7 @@
 
     <div class="page-eyebrow">{{ $program->name }}</div>
     <h2 class="font-display text-3xl font-bold text-ink-900 tracking-tight">Pilih akun Anda.</h2>
-    <p class="mt-3 text-sm text-ink-700/70">
-        <span class="mono-data">{{ count($users) }}</span> akun tersedia di program studi ini.
-    </p>
+
 
     @if ($errors->any())
         <div class="mt-6 rounded-md border border-status-rejected/30 bg-status-rejected/5 p-3">

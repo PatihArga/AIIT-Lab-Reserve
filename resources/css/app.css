@@ -22,6 +22,15 @@
         background: theme('colors.mark.500');
         color: theme('colors.ink.900');
     }
+
+    @keyframes float {
+        0%, 100% { transform: translate(-50%, -50%); }
+        50% { transform: translate(-50%, -55%); }
+    }
+    @keyframes pulse-slow {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.05); }
+    }
 }
 
 @layer components {
@@ -288,5 +297,12 @@
             linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
         background-size: 32px 32px;
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+    .animate-pulse-slow {
+        animation: pulse-slow 8s ease-in-out infinite;
     }
 }
