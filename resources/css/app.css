@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html {
+        background: theme('colors.bg');
+    }
+
+    body {
+        @apply font-sans text-ink-900 bg-bg antialiased;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-display tracking-tight text-ink-900;
+    }
+
+    /* Selection — branded */
+    ::selection {
+        background: theme('colors.mark.500');
+        color: theme('colors.ink.900');
+    }
+}
+
+@layer components {
+
+    /* ==========================================================
+       SECTION — replaces card-style wrappers
+       Use for grouping content with a label + breathing room
+       ========================================================== */
+    .section {
+        @apply mb-12;
+    }
+    .section-label {
+        @apply text-[0.7rem] font-semibold uppercase tracking-label text-ink-700/60 mb-3;
+    }
+    .section-title {
+        @apply text-xl font-semibold text-ink-900 mb-4;
+    }
+
+    /* ==========================================================
+       PAGE HEADER
+       ========================================================== */
+    .page-header {
+        @apply flex items-end justify-between gap-6 pb-6 mb-8 border-b border-rule;
+    }
+    .page-title {
+        @apply font-display text-3xl font-bold text-ink-900 tracking-tight;
+    }
+    .page-eyebrow {
+        @apply text-[0.7rem] font-semibold uppercase tracking-label text-mark-600 mb-2;
+    }
+    .page-meta {
+        @apply text-sm text-ink-700/60 mt-1;
+    }
+
+    /* ==========================================================
+       BUTTONS
+       Primary = navy filled. Mark (yellow) = the ONE CTA per screen.
+       ========================================================== */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+               transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed
+               focus-visible:outline-none focus-visible:shadow-focus;
+    }
+    .btn-mark {
+        @apply btn bg-mark-500 text-ink-900 font-semibold hover:bg-mark-400 active:bg-mark-600;
+    }
+    .btn-primary {
+        @apply btn bg-ink-700 text-white hover:bg-ink-600 active:bg-ink-800;
+    }
+    .btn-ghost {
+        @apply btn bg-transparent text-ink-700 hover:bg-ink-50;
+    }
+    .btn-secondary {
+        @apply btn bg-white text-ink-700 border border-rule-strong hover:bg-ink-50;
+    }
+    .btn-danger {
+        @apply btn bg-status-rejected text-white hover:opacity-90;
+    }
+    .btn-icon {
+        @apply inline-flex items-center justify-center w-8 h-8 rounded-md text-ink-700/70
+               hover:bg-ink-50 hover:text-ink-900 transition-colors;
+    }
+    .btn-lg {
+        @apply px-5 py-2.5 text-base;
+    }
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+
+    /* ==========================================================
+       FORM PRIMITIVES
+       ========================================================== */
+    .form-field {
+        @apply space-y-1.5;
+    }
+    .form-label {
+        @apply block text-sm font-medium text-ink-900;
+    }
+    .form-input,
+    .form-select,
+    .form-textarea {
+        @apply block w-full rounded-md border-rule-strong bg-white text-sm text-ink-900
+               placeholder:text-ink-700/40
+               focus:border-ink-500 focus:ring-0 focus:shadow-focus
+               disabled:bg-ink-50 disabled:cursor-not-allowed;
+    }
+    .form-textarea {
+        @apply min-h-[6rem];
+    }
+    .form-hint {
+        @apply text-xs text-ink-700/60;
+    }
+    .form-error {
+        @apply text-xs text-status-rejected font-medium;
+    }
+    .form-required::after {
+        content: '*';
+        @apply text-status-rejected ml-0.5;
+    }
+
+    /* ==========================================================
+       BADGES — outline-first, fill only for the most critical state
+       ========================================================== */
+    .badge {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.7rem] font-semibold uppercase tracking-wider;
+    }
+    .badge-outline {
+        @apply badge border border-rule-strong text-ink-700/70 bg-transparent;
+    }
+    .badge-pending {
+        @apply badge bg-mark-500 text-ink-900;
+    }
+    .badge-rejected {
+        @apply badge border border-status-rejected/40 text-status-rejected bg-status-rejected/5;
+    }
+    .badge-approved {
+        @apply badge border border-status-approved/40 text-status-approved bg-status-approved/5;
+    }
+    .badge-review {
+        @apply badge border border-status-review/40 text-status-review bg-status-review/5;
+    }
+    .badge-completed {
+        @apply badge border border-status-completed/40 text-status-completed bg-status-completed/5;
+    }
+    .badge-cancelled {
+        @apply badge border border-rule-strong text-ink-700/50 bg-transparent;
+    }
+    .badge-draft {
+        @apply badge border border-rule-strong text-ink-700/40 bg-transparent;
+    }
+    .badge-submitted {
+        @apply badge border border-ink-500/40 text-ink-600 bg-ink-50;
+    }
+
+    /* ==========================================================
+       DATA TABLE — hairlines, no full borders
+       ========================================================== */
+    .data-table {
+        @apply w-full border-collapse;
+    }
+    .data-table thead th {
+        @apply text-left text-[0.7rem] font-semibold uppercase tracking-label text-ink-700/60
+               px-4 py-3 border-b border-rule-strong bg-transparent;
+    }
+    .data-table tbody td {
+        @apply px-4 py-4 text-sm text-ink-900 border-b border-rule align-top;
+    }
+    .data-table tbody tr:last-child td {
+        @apply border-b-0;
+    }
+    .data-table tbody tr {
+        @apply transition-colors;
+    }
+    .data-table tbody tr:hover td {
+        @apply bg-ink-50/40;
+    }
+    /* Yellow left bar for highlight rows */
+    .data-table tr.row-mark td:first-child {
+        @apply relative;
+    }
+    .data-table tr.row-mark td:first-child::before {
+        content: '';
+        @apply absolute left-0 top-0 bottom-0 w-[3px] bg-mark-500;
+    }
+
+    /* ==========================================================
+       NAV — sidebar
+       ========================================================== */
+    .nav-item {
+        @apply relative flex items-center gap-3 px-4 py-2.5 text-sm font-medium
+               text-ink-100/70 hover:text-white hover:bg-white/5
+               rounded-md transition-colors;
+    }
+    .nav-item.active {
+        @apply text-white bg-white/10;
+    }
+    .nav-item.active::before {
+        content: '';
+        @apply absolute left-0 top-2 bottom-2 w-1 bg-mark-500 rounded-r;
+    }
+    .nav-item-icon {
+        @apply w-5 h-5 shrink-0;
+    }
+    .nav-section-label {
+        @apply px-4 mt-6 mb-2 text-[0.65rem] font-semibold uppercase tracking-label text-ink-100/40;
+    }
+
+    /* ==========================================================
+       STAT HERO — replaces stat cards
+       Big mono number + label, no wrapper card
+       ========================================================== */
+    .stat-hero {
+        @apply flex flex-col;
+    }
+    .stat-hero-value {
+        @apply font-mono text-stat text-ink-900;
+    }
+    .stat-hero-value-mark {
+        @apply font-mono text-stat text-mark-600;
+    }
+    .stat-hero-label {
+        @apply text-[0.7rem] font-semibold uppercase tracking-label text-ink-700/60 mt-2;
+    }
+    .stat-hero-meta {
+        @apply text-xs text-ink-700/60 mt-1;
+    }
+
+    /* ==========================================================
+       MONO DATA — inline numerical / code values
+       ========================================================== */
+    .mono-data {
+        @apply font-mono text-ink-900 font-medium;
+    }
+    .mono-code {
+        @apply font-mono text-xs font-medium text-ink-700/80 tracking-tight;
+    }
+
+    /* ==========================================================
+       STEP INDICATOR
+       ========================================================== */
+    .step-dot {
+        @apply flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border;
+    }
+    .step-dot-active {
+        @apply step-dot bg-mark-500 border-mark-500 text-ink-900;
+    }
+    .step-dot-complete {
+        @apply step-dot bg-ink-700 border-ink-700 text-white;
+    }
+    .step-dot-pending {
+        @apply step-dot bg-transparent border-rule-strong text-ink-700/40;
+    }
+    .step-connector {
+        @apply flex-1 h-px bg-rule-strong;
+    }
+    .step-connector-complete {
+        @apply step-connector bg-ink-700;
+    }
+
+    /* ==========================================================
+       EMPTY STATE
+       ========================================================== */
+    .empty-state {
+        @apply flex flex-col items-center justify-center text-center py-12 px-6;
+    }
+    .empty-state-title {
+        @apply font-display text-lg font-semibold text-ink-900 mt-4;
+    }
+    .empty-state-desc {
+        @apply text-sm text-ink-700/60 mt-1 max-w-md;
+    }
+}
+
+@layer utilities {
+    /* Blueprint grid — used sparingly as decorative texture */
+    .bg-grid-ink {
+        background-image:
+            linear-gradient(rgba(15, 36, 96, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 36, 96, 0.04) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    .bg-grid-light {
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+}
