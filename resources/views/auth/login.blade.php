@@ -11,9 +11,7 @@
 
     <div class="page-eyebrow">Masuk</div>
     <h2 class="font-display text-3xl font-bold text-ink-900 tracking-tight">Selamat datang.</h2>
-    <p class="mt-3 text-sm text-ink-700/70">
-        Masukkan email program studi untuk melanjutkan.
-    </p>
+
 
     @if ($errors->any())
         <div class="mt-6 rounded-md border border-status-rejected/30 bg-status-rejected/5 p-3">
@@ -39,7 +37,6 @@
                 autocomplete="username"
                 class="form-input"
             />
-            <p class="form-hint">Domain email akan menentukan program studi Anda.</p>
         </div>
 
         <button type="submit" class="btn-mark btn-lg w-full">
