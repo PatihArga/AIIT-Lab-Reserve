@@ -9,11 +9,15 @@
     .cal-divider { display: block !important; }
 }
 .cal-divider { display: none; width: 100%; height: 1px; background: rgba(15,36,96,.08); }
-.cal-grid-panel { padding: 12px 16px 16px; }
+.cal-grid-panel { padding: 10px 12px 14px; }
+@media (min-width: 640px) { .cal-grid-panel { padding: 12px 16px 16px; } }
 .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
-.cal-wd { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(10,26,71,.38); padding: 4px 0; }
-.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; min-height: 220px; align-items: start; }
-.cal-day { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; border-radius: 50%; cursor: pointer; color: #0A1A47; transition: background .15s, color .15s; position: relative; margin: 0 auto; }
+.cal-wd { text-align: center; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: rgba(10,26,71,.38); padding: 4px 0; }
+@media (min-width: 640px) { .cal-wd { font-size: 10px; letter-spacing: .08em; } }
+.cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; min-height: 200px; align-items: start; }
+@media (min-width: 640px) { .cal-days { gap: 2px; min-height: 220px; } }
+.cal-day { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 500; border-radius: 50%; cursor: pointer; color: #0A1A47; transition: background .15s, color .15s; position: relative; margin: 0 auto; }
+@media (min-width: 640px) { .cal-day { width: 34px; height: 34px; font-size: 12.5px; } }
 .cal-day:hover:not(.day-empty):not(.day-other) { background: #EEF2FF; color: #1A3C8F; }
 .cal-day.day-other { color: rgba(10,26,71,.32); cursor: default; }
 .cal-day.day-empty { cursor: default; }
@@ -25,9 +29,10 @@
 .cal-nav-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: rgba(10,26,71,.38); transition: background .15s, color .15s; }
 .cal-nav-btn:hover { background: #FAFAF7; color: #0A1A47; }
 .cal-nav-btn svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cal-slots-panel { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 300px; border-top: 1px solid rgba(15,36,96,.08); }
-@media (min-width: 640px) { .cal-slots-panel { border-top: none; max-height: 340px; } }
-.cal-slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+.cal-slots-panel { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 240px; border-top: 1px solid rgba(15,36,96,.08); }
+@media (min-width: 640px) { .cal-slots-panel { padding: 12px 16px 16px; gap: 8px; border-top: none; max-height: 340px; } }
+.cal-slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+@media (min-width: 640px) { .cal-slots-grid { gap: 5px; } }
 .cal-slot { padding: 7px 8px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: #FAFAF7; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: background .15s, border-color .15s, color .15s, transform .1s; overflow: hidden; }
 .cal-slot:hover { border-color: #DBEAFE; background: #fff; }
 .cal-slot:active { transform: scale(0.97); }
@@ -132,55 +137,55 @@
     {{-- ── STAT CARDS ── --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
 
-        <div class="bg-white border border-rule rounded-xl p-5 shadow-card flex flex-col gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+        <div class="bg-white border border-rule rounded-xl p-4 sm:p-5 shadow-card flex flex-col gap-2 sm:gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/40">Sesi Mendatang</span>
+                <span class="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-label text-ink-700/40 leading-tight">Sesi Mendatang</span>
                 <span class="w-7 h-7 rounded-md bg-ink-50 flex items-center justify-center shrink-0">
                     <svg class="w-3.5 h-3.5 stroke-ink-700" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[2rem] font-bold text-ink-900 tracking-tight leading-none">2</div>
-                <div class="text-[11.5px] text-ink-700/40 mt-1">Mei 12 – Mei 18</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">2</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">Mei 12 – Mei 18</div>
             </div>
         </div>
 
-        <div class="bg-white border border-rule rounded-xl p-5 shadow-card flex flex-col gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+        <div class="bg-white border border-rule rounded-xl p-4 sm:p-5 shadow-card flex flex-col gap-2 sm:gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/40">Total Bulan Ini</span>
+                <span class="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-label text-ink-700/40 leading-tight">Total Bulan Ini</span>
                 <span class="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style="background:#d4f5ef">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="#2eb8a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[2rem] font-bold text-ink-900 tracking-tight leading-none">14</div>
-                <div class="text-[11.5px] text-ink-700/40 mt-1"><span style="color:#2eb8a0" class="font-semibold">&#8593; 3</span> vs bulan lalu</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">14</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1"><span style="color:#2eb8a0" class="font-semibold">&#8593; 3</span> vs bulan lalu</div>
             </div>
         </div>
 
-        <div class="bg-white border border-rule rounded-xl p-5 shadow-card flex flex-col gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+        <div class="bg-white border border-rule rounded-xl p-4 sm:p-5 shadow-card flex flex-col gap-2 sm:gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/40">Menunggu Persetujuan</span>
+                <span class="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-label text-ink-700/40 leading-tight">Menunggu</span>
                 <span class="w-7 h-7 rounded-md bg-mark-50 flex items-center justify-center shrink-0">
                     <svg class="w-3.5 h-3.5 stroke-mark-600" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[2rem] font-bold text-mark-600 tracking-tight leading-none">1</div>
-                <div class="text-[11.5px] text-ink-700/40 mt-1">LAB-0044</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-mark-600 tracking-tight leading-none">1</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">LAB-0044</div>
             </div>
         </div>
 
-        <div class="bg-white border border-rule rounded-xl p-5 shadow-card flex flex-col gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+        <div class="bg-white border border-rule rounded-xl p-4 sm:p-5 shadow-card flex flex-col gap-2 sm:gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
             <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/40">Total Pemakaian</span>
+                <span class="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-label text-ink-700/40 leading-tight">Total Pemakaian</span>
                 <span class="w-7 h-7 rounded-md bg-ink-50 flex items-center justify-center shrink-0">
                     <svg class="w-3.5 h-3.5 stroke-ink-700" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[2rem] font-bold text-ink-900 tracking-tight leading-none">38h</div>
-                <div class="text-[11.5px] text-ink-700/40 mt-1">Tahun akademik ini</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">38h</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">Tahun akademik ini</div>
             </div>
         </div>
 
@@ -189,10 +194,10 @@
     {{-- ── INTERACTIVE CALENDAR ── --}}
     <div class="bg-white border border-rule rounded-xl shadow-card mb-6">
 
-        <div class="flex items-center justify-between px-5 py-4 border-b border-rule">
-            <div class="flex items-center gap-2.5">
+        <div class="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-rule">
+            <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-ink-900 tracking-tight" id="cal-month-label">Mei 2026</span>
-                <span class="bg-ink-50 text-ink-700 text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">3 reservasi</span>
+                <span class="bg-ink-50 text-ink-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">3 reservasi</span>
             </div>
             <div class="flex items-center gap-1">
                 <button onclick="calNav(-1)" class="cal-nav-btn" title="Bulan sebelumnya">
@@ -236,10 +241,10 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
 
         {{-- Reservations table card --}}
-        <div class="bg-white border border-rule rounded-xl shadow-card overflow-hidden">
-            <div class="px-5 pt-5 pb-0 flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/60">Reservasi Mendatang</span>
+        <div class="bg-white border border-rule rounded-xl shadow-card overflow-hidden order-2 lg:order-1">
+            <div class="px-4 sm:px-5 pt-4 sm:pt-5 pb-0 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/60">Reservasi</span>
                     <span class="bg-ink-50 text-ink-700 text-[11px] font-bold px-2 py-0.5 rounded-full">3</span>
                 </div>
                 <div class="pill-tabs">
@@ -247,8 +252,8 @@
                     <div class="pill-tab" onclick="switchBookingTab(this,'selesai')">Selesai</div>
                 </div>
             </div>
-            <div class="px-5 pb-5 pt-3 overflow-x-auto">
-                <table class="bookings-tbl" style="min-width:480px">
+            <div class="px-4 sm:px-5 pb-4 sm:pb-5 pt-3 overflow-x-auto">
+                <table class="bookings-tbl" style="min-width:460px">
                     <thead>
                         <tr>
                             <th>Kode</th>
@@ -315,7 +320,7 @@
         </div>
 
         {{-- Right panel: lab hours + status --}}
-        <div class="bg-white border border-rule rounded-xl shadow-card">
+        <div class="bg-white border border-rule rounded-xl shadow-card order-1 lg:order-2">
             <div class="r-panel-section">
                 <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-3.5">Jam Operasional Lab</div>
                 <div class="hours-row">

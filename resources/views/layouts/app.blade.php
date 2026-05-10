@@ -44,8 +44,8 @@
 
     {{-- Desktop sidebar collapse/expand toggle pill --}}
     <button @click="sidebarOpen = !sidebarOpen"
-            :class="sidebarOpen ? 'left-[272px]' : 'left-4'"
-            class="hidden lg:flex fixed top-[22px] z-40 w-7 h-7 rounded-full bg-white border border-rule shadow-card items-center justify-center text-ink-700/40 hover:text-ink-900 hover:bg-ink-50 transition-all duration-200"
+            :style="{ left: sidebarOpen ? '272px' : '16px' }"
+            class="hidden lg:flex fixed top-[22px] z-50 w-7 h-7 rounded-full bg-white border border-rule shadow-card items-center justify-center text-ink-700/40 hover:text-ink-900 hover:bg-ink-50 transition-all duration-300"
             title="Toggle sidebar">
         <svg :class="{ 'rotate-180': !sidebarOpen }" class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <polyline points="15 18 9 12 15 6"/>
@@ -54,7 +54,7 @@
 
     {{-- Main content wrapper — shifts right on desktop when sidebar is open --}}
     <div :class="sidebarOpen ? 'lg:ml-shell' : 'lg:ml-0'"
-         class="min-h-screen flex flex-col transition-all duration-200 pt-14 lg:pt-0">
+         class="min-h-screen flex flex-col transition-all duration-300 pt-14 lg:pt-0">
 
         {{-- Optional sticky top-bar slot --}}
         @isset($topbar)

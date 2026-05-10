@@ -12,14 +12,14 @@
                  (translate-x controlled by `mobileOpen`). The width is always 256px.
     On desktop : the sidebar collapses to width-0 / full via `sidebarOpen`.
 --}}
-<aside class="fixed inset-y-0 left-0 bg-ink-900 text-white flex flex-col z-40 transition-all duration-200 overflow-hidden
+<aside class="fixed inset-y-0 left-0 bg-ink-900 text-white flex flex-col z-40 transition-all duration-300 overflow-hidden
               -translate-x-full lg:translate-x-0
-              w-[256px] lg:w-shell"
+              w-[256px]"
        :class="{
            '-translate-x-full': !mobileOpen,
-           'translate-x-0': mobileOpen,
-           'lg:-translate-x-0 lg:w-[256px]': sidebarOpen,
-           'lg:w-0': !sidebarOpen,
+           'translate-x-0 shadow-2xl': mobileOpen,
+           'lg:max-w-[256px]': sidebarOpen,
+           'lg:max-w-0': !sidebarOpen,
            'lg:!translate-x-0': true
        }">
 <div style="width:256px;min-width:256px;" class="flex flex-col h-full">

@@ -10,6 +10,12 @@ export default {
         './resources/js/**/*.js',
     ],
 
+    safelist: [
+        'lg:max-w-[256px]',
+        'lg:max-w-0',
+        'shadow-2xl',
+    ],
+
     theme: {
         extend: {
             fontFamily: {
