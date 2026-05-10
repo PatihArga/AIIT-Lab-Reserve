@@ -4,7 +4,11 @@
 <style>
 /* ── CALENDAR ─────────────────────────────────────────────── */
 .cal-body { display: grid; grid-template-columns: 1fr; align-items: start; }
-@media (min-width: 768px) { .cal-body { grid-template-columns: 1fr 1px 1fr; } }
+@media (min-width: 640px) {
+    .cal-body { grid-template-columns: 1fr 1px 1fr; }
+    .cal-divider { display: block !important; }
+}
+.cal-divider { display: none; width: 100%; height: 1px; background: rgba(15,36,96,.08); }
 .cal-grid-panel { padding: 12px 16px 16px; }
 .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
 .cal-wd { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(10,26,71,.38); padding: 4px 0; }
@@ -22,15 +26,13 @@
 .cal-nav-btn:hover { background: #FAFAF7; color: #0A1A47; }
 .cal-nav-btn svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .cal-slots-panel { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 300px; border-top: 1px solid rgba(15,36,96,.08); }
-@media (min-width: 768px) { .cal-slots-panel { border-top: none; max-height: 340px; } }
-.cal-divider { display: none; }
-@media (min-width: 768px) { .cal-divider { display: block; background: rgba(15,36,96,.08); } }
+@media (min-width: 640px) { .cal-slots-panel { border-top: none; max-height: 340px; } }
 .cal-slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
 .cal-slot { padding: 7px 8px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: #FAFAF7; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: background .15s, border-color .15s, color .15s, transform .1s; overflow: hidden; }
 .cal-slot:hover { border-color: #DBEAFE; background: #fff; }
 .cal-slot:active { transform: scale(0.97); }
 .cal-slot.slot-booked { background: #FFFBEB; border-color: #FDE68A; color: #D9A300; cursor: not-allowed; }
-.interval-btn { padding: 4px 10px; font-size: 10.5px; font-weight: 600; font-family: 'Sora', sans-serif; border: none; background: transparent; color: rgba(10,26,71,.4); cursor: pointer; transition: background .15s, color .15s; }
+.interval-btn { padding: 4px 10px; font-size: 10.5px; font-weight: 600; font-family: 'Sora', sans-serif; border: none; background: transparent; color: rgba(10,26,71,.4); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
 .interval-btn.active { background: #0A1A47; color: #fff; }
 .interval-btn:hover:not(.active) { background: #FAFAF7; color: #0A1A47; }
 
@@ -245,8 +247,8 @@
                     <div class="pill-tab" onclick="switchBookingTab(this,'selesai')">Selesai</div>
                 </div>
             </div>
-            <div class="px-3 sm:px-5 pb-5 pt-3 overflow-x-auto">
-                <table class="bookings-tbl">
+            <div class="px-5 pb-5 pt-3 overflow-x-auto">
+                <table class="bookings-tbl" style="min-width:480px">
                     <thead>
                         <tr>
                             <th>Kode</th>
@@ -550,7 +552,7 @@ function renderTimeSlots(day) {
 function resetSlots() {
     currentDay = null;
     document.getElementById('cal-slots-header').textContent = 'Pilih tanggal';
-    document.getElementById('cal-slots-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">← Pilih tanggal di sebelah kiri</div>';
+    document.getElementById('cal-slots-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">Pilih tanggal untuk melihat slot</div>';
 }
 
 let currentResType = 'computer', currentSharing = 'exclusive';
