@@ -25,22 +25,22 @@
     {{-- Sidebar (uses mobileOpen on mobile, sidebarOpen on desktop) --}}
     <x-app-sidebar />
 
-    {{-- Mobile top bar — fixed, sits above everything on small screens --}}
-    <header class="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-ink-900 flex items-center justify-between px-4 shadow-md">
-        <button @click="mobileOpen = true"
-                class="w-8 h-8 flex items-center justify-center rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                aria-label="Buka sidebar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
-        </button>
-        <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded bg-mark-500 text-ink-900 flex items-center justify-center font-bold text-xs">LR</div>
-            <span class="text-sm font-semibold text-white tracking-tight">Lab Reserve</span>
-        </div>
-        {{-- Spacer to keep brand centered --}}
-        <div class="w-8"></div>
-    </header>
+    {{-- Mobile sidebar open trigger — floating icon button, hidden when drawer is open --}}
+    <button x-show="!mobileOpen"
+            @click="mobileOpen = true"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-90"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-90"
+            class="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 flex items-center justify-center rounded-xl bg-ink-900 text-white shadow-lg"
+            style="display:none"
+            aria-label="Buka sidebar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </button>
 
     {{-- Desktop sidebar collapse/expand toggle pill --}}
     <button @click="sidebarOpen = !sidebarOpen"
