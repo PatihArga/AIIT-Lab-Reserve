@@ -53,7 +53,7 @@
        PAGE HEADER
        ========================================================== */
     .page-header {
-        @apply flex items-end justify-between gap-6 pb-6 mb-8 border-b border-rule;
+        @apply flex flex-wrap items-end justify-between gap-6 pb-6 mb-8 border-b border-rule;
     }
     .page-title {
         @apply font-display text-3xl font-bold text-ink-900 tracking-tight;
