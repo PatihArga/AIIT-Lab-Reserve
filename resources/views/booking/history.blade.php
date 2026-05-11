@@ -27,25 +27,59 @@
     @endphp
 
     {{-- Filter bar --}}
-    <div class="flex items-center gap-3 mb-6 flex-wrap" x-data="{ status: 'all' }">
-        @foreach (['all' => 'Semua', 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'completed' => 'Selesai', 'rejected' => 'Ditolak'] as $val => $label)
-            <button type="button"
-                    @click="status = '{{ $val }}'"
-                    :class="status === '{{ $val }}' ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-ink-700/70 border-rule hover:border-ink-300'"
-                    class="px-3.5 py-1.5 text-xs font-semibold uppercase tracking-label border rounded-md transition-all">
-                {{ $label }}
-            </button>
-        @endforeach
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap" x-data="{ status: 'all' }">
+        {{-- Status chips --}}
+        <div class="flex flex-wrap gap-2">
+            @foreach (['all' => 'Semua', 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'completed' => 'Selesai', 'rejected' => 'Ditolak'] as $val => $label)
+                <button type="button"
+                        @click="status = '{{ $val }}'"
+                        :class="status === '{{ $val }}' ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-ink-700/70 border-rule hover:border-ink-300'"
+                        class="px-3 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-label border rounded-md transition-all whitespace-nowrap">
+                    {{ $label }}
+                </button>
+            @endforeach
+        </div>
 
-        <div class="ml-auto flex items-center gap-2">
+        {{-- Search + date --}}
+        <div class="flex gap-2 sm:ml-auto">
             <input type="search" placeholder="Cari kode…"
-                   class="form-input py-1.5 text-xs w-44">
-            <input type="date" class="form-input py-1.5 text-xs w-36">
+                   class="form-input py-1.5 text-xs flex-1 sm:w-44 sm:flex-none">
+            <input type="date" class="form-input py-1.5 text-xs flex-1 sm:w-36 sm:flex-none">
         </div>
     </div>
 
-    {{-- Table --}}
-    <div class="bg-white border border-rule rounded-xl shadow-card overflow-hidden">
+    {{-- Cards (mobile) --}}
+    <div class="sm:hidden space-y-3">
+        @foreach ($bookings as $b)
+            <a href="{{ route('booking.show', 1) }}"
+               class="block bg-white border border-rule rounded-xl shadow-card p-4
+                      hover:shadow-md active:scale-[0.99] transition-all
+                      {{ $b['status'] === 'pending' ? 'border-l-[3px] border-l-mark-500' : '' }}">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <span class="font-mono text-sm font-semibold text-ink-900">{{ $b['code'] }}</span>
+                    <x-badge :status="$b['status']" />
+                </div>
+                <div class="text-sm font-medium text-ink-900 mb-1">{{ $b['type'] }}</div>
+                <div class="flex items-center gap-2 text-xs text-ink-700/60 font-mono">
+                    <span>{{ $b['date'] }}</span>
+                    <span class="text-ink-700/30">·</span>
+                    <span>{{ $b['time'] }}</span>
+                </div>
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-rule">
+                    <span class="text-xs text-ink-700/70">{{ $b['category'] }}</span>
+                    <span class="text-xs font-semibold text-ink-700 inline-flex items-center gap-1">
+                        Lihat
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+        @endforeach
+    </div>
+
+    {{-- Table (desktop) --}}
+    <div class="hidden sm:block bg-white border border-rule rounded-xl shadow-card overflow-hidden">
         <table class="data-table">
             <thead>
                 <tr>
@@ -78,7 +112,7 @@
     </div>
 
     {{-- Pagination placeholder --}}
-    <div class="flex items-center justify-between mt-4 text-xs text-ink-700/50">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4 text-xs text-ink-700/50">
         <span>Menampilkan 5 dari 5 entri</span>
         <div class="flex gap-1">
             <button class="px-3 py-1.5 rounded border border-rule bg-white text-ink-700/50 cursor-not-allowed">← Sebelumnya</button>
