@@ -15,7 +15,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     })->name('dashboard');
 
     // Booking flow
-    Route::get('/booking/create', fn() => view('booking.create'))->name('booking.create');
+    Route::get('/booking/create', fn() => redirect()->route('booking.schedule'))->name('booking.create');
     Route::get('/booking/create/logbook', fn() => view('booking.logbook'))->name('booking.logbook');
     Route::get('/booking/create/schedule', fn() => view('booking.schedule'))->name('booking.schedule');
     Route::get('/booking/create/review', fn() => view('booking.review'))->name('booking.review');

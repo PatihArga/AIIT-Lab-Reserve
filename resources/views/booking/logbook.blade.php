@@ -6,8 +6,8 @@
             title="Informasi Kegiatan">
             <x-slot:actions>
                 <x-step-indicator
-                    :steps="['Pilih Tipe', 'Jadwal', 'Informasi', 'Tinjau']"
-                    :current="3" />
+                    :steps="['Pilih Jadwal', 'Informasi', 'Tinjau']"
+                    :current="2" />
             </x-slot:actions>
         </x-page-header>
     </x-slot:header>

@@ -97,7 +97,7 @@
             </a>
 
             <div class="nav-section-label">Reservasi</div>
-            <a href="{{ route('booking.create') }}"
+            <a href="{{ route('booking.schedule') }}"
                class="nav-item {{ str_starts_with($current, 'booking.create') || str_starts_with($current, 'booking.logbook') || str_starts_with($current, 'booking.schedule') || str_starts_with($current, 'booking.review') ? 'active' : '' }}">
                 <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/></svg>
                 <span>Buat Reservasi</span>

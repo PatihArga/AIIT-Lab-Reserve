@@ -6,8 +6,8 @@
             title="Tinjau & Kirim">
             <x-slot:actions>
                 <x-step-indicator
-                    :steps="['Pilih Tipe', 'Jadwal', 'Informasi', 'Tinjau']"
-                    :current="4" />
+                    :steps="['Pilih Jadwal', 'Informasi', 'Tinjau']"
+                    :current="3" />
             </x-slot:actions>
         </x-page-header>
     </x-slot:header>
