@@ -285,6 +285,7 @@ function bookingForm() {
             const mm = String(this.month + 1).padStart(2, '0');
             const dd = String(day).padStart(2, '0');
             this.isoDate = this.year + '-' + mm + '-' + dd;
+            this.build();
         },
 
         cellClass(cell) {
