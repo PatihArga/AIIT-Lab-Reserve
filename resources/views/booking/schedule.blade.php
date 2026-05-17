@@ -30,6 +30,23 @@
     </x-slot:header>
 
     <div class="max-w-2xl mx-auto">
+
+        @if (session('error'))
+            <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                <ul class="list-disc list-inside space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('booking.logbook') }}" method="GET"
               x-data="bookingForm()"
               @submit.prevent="(selected && isoDate) && $el.submit()">
@@ -112,14 +129,18 @@
                                 <div class="mt-4 space-y-2" x-show="selected === 'room_only'" x-transition>
                                     <p class="text-xs font-semibold uppercase tracking-label text-ink-700/60 mb-2">Mode penggunaan</p>
                                     <label class="flex items-center gap-3 p-3 rounded-lg border border-rule bg-white hover:bg-ink-50/60 cursor-pointer has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/40 transition-all">
-                                        <input type="radio" name="room_sharing" value="exclusive" class="accent-ink-700">
+                                        <input type="radio" name="room_sharing" value="exclusive" class="accent-ink-700"
+                                               x-model="roomSharing"
+                                               {{ ($draft['room_sharing'] ?? null) === 'exclusive' ? 'checked' : '' }}>
                                         <div>
                                             <div class="text-sm font-medium text-ink-900">Eksklusif</div>
                                             <div class="text-xs text-ink-700/50">Ruangan hanya untuk Anda, tidak ada pengguna lain di slot yang sama</div>
                                         </div>
                                     </label>
                                     <label class="flex items-center gap-3 p-3 rounded-lg border border-rule bg-white hover:bg-ink-50/60 cursor-pointer has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/40 transition-all">
-                                        <input type="radio" name="room_sharing" value="shared" class="accent-ink-700">
+                                        <input type="radio" name="room_sharing" value="shared" class="accent-ink-700"
+                                               x-model="roomSharing"
+                                               {{ ($draft['room_sharing'] ?? null) === 'shared' ? 'checked' : '' }}>
                                         <div>
                                             <div class="text-sm font-medium text-ink-900">Berbagi</div>
                                             <div class="text-xs text-ink-700/50">Ruangan dapat digunakan bersama dengan pemohon lain di slot yang sama</div>
@@ -175,33 +196,33 @@
 
             {{-- ── § Waktu ── --}}
             <x-section label="Waktu">
+                @php
+                    $draftStart = $draft['start_time'] ?? '';
+                    $draftEnd   = $draft['end_time'] ?? '';
+                @endphp
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-field">
                         <label class="form-label form-required">Waktu Mulai</label>
-                        <select name="start_time" class="form-select" required>
-                            <option value="" disabled selected>Pilih jam…</option>
+                        <select name="start_time" class="form-select" required x-model="startTime">
+                            <option value="" disabled {{ $draftStart === '' ? 'selected' : '' }}>Pilih jam…</option>
                             @for ($h = 8; $h <= 21; $h++)
-                                <option value="{{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00">
-                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
-                                </option>
-                                <option value="{{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:30">
-                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:30
-                                </option>
+                                @php $t1 = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'; @endphp
+                                <option value="{{ $t1 }}" {{ $draftStart === $t1 ? 'selected' : '' }}>{{ $t1 }}</option>
+                                @php $t2 = str_pad($h, 2, '0', STR_PAD_LEFT) . ':30'; @endphp
+                                <option value="{{ $t2 }}" {{ $draftStart === $t2 ? 'selected' : '' }}>{{ $t2 }}</option>
                             @endfor
                         </select>
                     </div>
                     <div class="form-field">
                         <label class="form-label form-required">Waktu Selesai</label>
-                        <select name="end_time" class="form-select" required>
-                            <option value="" disabled selected>Pilih jam…</option>
+                        <select name="end_time" class="form-select" required x-model="endTime">
+                            <option value="" disabled {{ $draftEnd === '' ? 'selected' : '' }}>Pilih jam…</option>
                             @for ($h = 8; $h <= 22; $h++)
-                                <option value="{{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00">
-                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:00
-                                </option>
+                                @php $e1 = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00'; @endphp
+                                <option value="{{ $e1 }}" {{ $draftEnd === $e1 ? 'selected' : '' }}>{{ $e1 }}</option>
                                 @if ($h < 22)
-                                <option value="{{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:30">
-                                    {{ str_pad($h, 2, '0', STR_PAD_LEFT) }}:30
-                                </option>
+                                    @php $e2 = str_pad($h, 2, '0', STR_PAD_LEFT) . ':30'; @endphp
+                                    <option value="{{ $e2 }}" {{ $draftEnd === $e2 ? 'selected' : '' }}>{{ $e2 }}</option>
                                 @endif
                             @endfor
                         </select>
@@ -215,25 +236,35 @@
                     <p class="text-sm text-ink-700/60 mb-4">
                         Pilih unit komputer yang ingin Anda gunakan. Unit yang diarsir sedang dalam pemeliharaan.
                     </p>
-                    @php
-                        $dummyComputers = collect(range(1, 9))->map(fn($n) => (object)[
-                            'id'     => $n,
-                            'label'  => 'PC-' . str_pad($n, 2, '0', STR_PAD_LEFT),
-                            'status' => $n === 9 ? 'maintenance' : 'online',
-                        ]);
-                    @endphp
-                    <x-computer-grid :computers="$dummyComputers" :selectable="true" name="computers" />
+                    <x-computer-grid :computers="$computers" :selectable="true" name="computers" :selected="$draft['computers'] ?? []" />
                     <p class="form-hint mt-3">Pilih minimal 1 unit. Anda dapat memilih hingga semua unit yang tersedia.</p>
                 </x-section>
             </div>
 
-            <div class="flex items-center justify-between pt-6 border-t border-rule">
+            {{-- ── § Indikator Ketersediaan ── --}}
+            <div class="mt-6" x-show="canCheck" x-cloak>
+                <div class="rounded-lg border px-4 py-3 flex items-center gap-3 text-sm"
+                     :class="availClass">
+                    <template x-if="availStatus === 'loading'">
+                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8"/></svg>
+                    </template>
+                    <template x-if="availStatus === 'available'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </template>
+                    <template x-if="availStatus === 'conflict' || availStatus === 'error'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="12" y1="8"  x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
+                    </template>
+                    <span x-text="availMessage"></span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-6 border-t border-rule mt-6">
                 <a href="{{ route('dashboard') }}" class="btn-ghost">
                     ← Batal
                 </a>
                 <button type="submit"
-                        :disabled="!selected || !isoDate"
-                        :class="(!selected || !isoDate) ? 'btn-mark btn-lg opacity-40 cursor-not-allowed' : 'btn-mark btn-lg'">
+                        :disabled="!selected || !isoDate || availStatus === 'conflict'"
+                        :class="(!selected || !isoDate || availStatus === 'conflict') ? 'btn-mark btn-lg opacity-40 cursor-not-allowed' : 'btn-mark btn-lg'">
                     Lanjut: Isi Informasi
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -252,15 +283,97 @@ function bookingForm() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const draft = @json($draft ?? null);
+    const draftDate = draft && draft.date ? draft.date : '';
+    const draftYear = draftDate ? parseInt(draftDate.slice(0, 4), 10) : today.getFullYear();
+    const draftMonth = draftDate ? parseInt(draftDate.slice(5, 7), 10) - 1 : today.getMonth();
+    const checkUrl = @json(route('api.availability.check'));
+
     return {
-        selected: '',
-        isoDate: '',
-        year: today.getFullYear(),
-        month: today.getMonth(),
+        selected: draft && draft.type ? draft.type : '',
+        isoDate: draftDate,
+        startTime: draft && draft.start_time ? draft.start_time : '',
+        endTime:   draft && draft.end_time   ? draft.end_time   : '',
+        roomSharing: draft && draft.room_sharing ? draft.room_sharing : '',
+        year: draftYear,
+        month: draftMonth,
         cells: [],
+
+        availStatus: 'idle',     // idle | loading | available | conflict | error
+        availMessage: '',
+        availTimer: null,
 
         init() {
             this.build();
+            // Watch the fields that affect availability
+            ['selected', 'isoDate', 'startTime', 'endTime', 'roomSharing'].forEach(prop => {
+                this.$watch(prop, () => this.scheduleAvailabilityCheck());
+            });
+            // Watch computer checkboxes by listening to their change events
+            this.$el.querySelectorAll('input[name="computers[]"]').forEach(cb => {
+                cb.addEventListener('change', () => this.scheduleAvailabilityCheck());
+            });
+            // Initial check if we have a hydrated draft
+            this.$nextTick(() => this.scheduleAvailabilityCheck());
+        },
+
+        get canCheck() {
+            if (!this.selected || !this.isoDate || !this.startTime || !this.endTime) return false;
+            if (this.startTime >= this.endTime) return false;
+            if (this.selected === 'room_only' && !this.roomSharing) return false;
+            return true;
+        },
+
+        get availClass() {
+            return {
+                'border-rule bg-white text-ink-700/60': this.availStatus === 'loading',
+                'border-emerald-200 bg-emerald-50 text-emerald-700': this.availStatus === 'available',
+                'border-red-200 bg-red-50 text-red-700': this.availStatus === 'conflict' || this.availStatus === 'error',
+            };
+        },
+
+        getSelectedComputers() {
+            return Array.from(this.$el.querySelectorAll('input[name="computers[]"]:checked'))
+                .map(el => parseInt(el.value, 10));
+        },
+
+        scheduleAvailabilityCheck() {
+            if (!this.canCheck) {
+                this.availStatus = 'idle';
+                this.availMessage = '';
+                return;
+            }
+            if (this.availTimer) clearTimeout(this.availTimer);
+            this.availTimer = setTimeout(() => this.runAvailabilityCheck(), 250);
+        },
+
+        async runAvailabilityCheck() {
+            this.availStatus = 'loading';
+            this.availMessage = 'Memeriksa ketersediaan…';
+            const params = new URLSearchParams();
+            params.append('type', this.selected);
+            params.append('date', this.isoDate);
+            params.append('start_time', this.startTime);
+            params.append('end_time', this.endTime);
+            if (this.selected === 'room_only' && this.roomSharing) {
+                params.append('room_sharing', this.roomSharing);
+            }
+            if (this.selected === 'computers_only') {
+                this.getSelectedComputers().forEach(id => params.append('computers[]', id));
+            }
+            try {
+                const res = await fetch(checkUrl + '?' + params.toString(), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                if (!res.ok) throw new Error('http ' + res.status);
+                const data = await res.json();
+                this.availStatus  = data.available ? 'available' : 'conflict';
+                this.availMessage = data.message;
+            } catch (e) {
+                this.availStatus = 'error';
+                this.availMessage = 'Gagal memeriksa ketersediaan. Coba lagi.';
+            }
         },
 
         get monthLabel() {

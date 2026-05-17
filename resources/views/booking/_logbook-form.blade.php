@@ -1,8 +1,13 @@
 {{--
     Logbook form partial — included in booking/show.blade.php
     Only rendered when booking status is 'approved' or 'completed'
+    Required vars: $booking
 --}}
-<form method="POST" action="#" class="bg-white border border-rule rounded-xl shadow-card p-6 space-y-5">
+@php
+    $lb = $booking->logbook;
+@endphp
+<form method="POST" action="{{ route('booking.logbook.update', $booking) }}"
+      class="bg-white border border-rule rounded-xl shadow-card p-6 space-y-5">
     @csrf
     @method('PUT')
 
@@ -10,26 +15,28 @@
         <label class="form-label form-required">Checkpoint / Progress Kegiatan</label>
         <textarea name="checkpoint_progress" class="form-textarea" rows="4"
                   placeholder="Jelaskan tahap kegiatan yang sudah diselesaikan dalam sesi ini…"
-                  required></textarea>
-        <p class="form-hint">Deskripsikan secara singkat apa yang berhasil diselesaikan.</p>
+                  required>{{ old('checkpoint_progress', $lb->checkpoint_progress ?? '') }}</textarea>
+        <p class="form-hint">Deskripsikan secara singkat apa yang berhasil diselesaikan (min. 10 karakter).</p>
     </div>
 
     <div class="form-field">
         <label class="form-label">Target Sesi</label>
         <textarea name="session_target" class="form-textarea" rows="3"
-                  placeholder="Apa yang ingin dicapai di akhir sesi ini?"></textarea>
+                  placeholder="Apa yang ingin dicapai di akhir sesi ini?">{{ old('session_target', $lb->session_target ?? '') }}</textarea>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
         <div class="form-field">
             <label class="form-label">Nama Pembimbing</label>
             <input type="text" name="supervisor_name" class="form-input"
-                   placeholder="cth. Dr. Budi Santoso">
+                   placeholder="cth. Dr. Budi Santoso"
+                   value="{{ old('supervisor_name', $lb->supervisor_name ?? '') }}">
         </div>
         <div class="form-field">
             <label class="form-label">Mata Kuliah Terkait</label>
             <input type="text" name="related_course" class="form-input"
-                   placeholder="cth. Kecerdasan Buatan">
+                   placeholder="cth. Kecerdasan Buatan"
+                   value="{{ old('related_course', $lb->related_course ?? '') }}">
         </div>
     </div>
 

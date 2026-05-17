@@ -115,17 +115,35 @@
 </style>
 @endpush
 
+    @php
+        $monthNamesId = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        $monthShortId = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $dayNamesId   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+        $nextBooking  = $upcomingBookings->first();
+        if ($nextBooking) {
+            $nbDate = $nextBooking->date;
+            $nextLabel = $dayNamesId[$nbDate->dayOfWeek] . ', ' . $nbDate->day . ' ' . $monthShortId[$nbDate->month - 1]
+                . ' · ' . substr($nextBooking->start_time, 0, 5) . ' — ' . substr($nextBooking->end_time, 0, 5);
+        }
+    @endphp
+
     <x-slot:header>
         <div class="pb-5 mb-0 border-b border-rule">
             <div class="text-[0.7rem] font-semibold uppercase tracking-label text-mark-600 mb-1">Beranda</div>
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
                 <div>
                     <h2 class="font-display text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">Halo, {{ explode(' ', Auth::user()->name)[0] }}.</h2>
-                    <p class="mt-1 text-xs sm:text-sm text-ink-700/60">Sesi berikutnya: Selasa, 12 Mei · 09:00 — 12:00 (Tim Alpha)</p>
+                    <p class="mt-1 text-xs sm:text-sm text-ink-700/60">
+                        @if ($nextBooking)
+                            Sesi berikutnya: {{ $nextLabel }} ({{ $nextBooking->booking_code }})
+                        @else
+                            Belum ada sesi mendatang.
+                        @endif
+                    </p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <a href="#" class="btn-ghost btn-sm">Lihat Riwayat</a>
-                    <a href="#" class="btn-mark btn-sm">
+                    <a href="{{ route('booking.history') }}" class="btn-ghost btn-sm">Lihat Riwayat</a>
+                    <a href="{{ route('booking.schedule') }}" class="btn-mark btn-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Buat Reservasi
                     </a>
@@ -145,8 +163,8 @@
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">2</div>
-                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">Mei 12 – Mei 18</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">{{ $stats['upcoming_count'] }}</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">{{ now()->translatedFormat('M Y') }}</div>
             </div>
         </div>
 
@@ -158,8 +176,8 @@
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">14</div>
-                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1"><span style="color:#2eb8a0" class="font-semibold">&#8593; 3</span> vs bulan lalu</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">{{ $stats['this_month_total'] }}</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">{{ $monthNamesId[now()->month - 1] }} {{ now()->year }}</div>
             </div>
         </div>
 
@@ -171,8 +189,8 @@
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-mark-600 tracking-tight leading-none">1</div>
-                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">LAB-0044</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-mark-600 tracking-tight leading-none">{{ $stats['pending_count'] }}</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">{{ $stats['pending_code'] ?? '—' }}</div>
             </div>
         </div>
 
@@ -184,8 +202,8 @@
                 </span>
             </div>
             <div>
-                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">38h</div>
-                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">Tahun akademik ini</div>
+                <div class="font-mono text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 tracking-tight leading-none">{{ $stats['total_hours'] }}h</div>
+                <div class="text-[10.5px] sm:text-[11.5px] text-ink-700/40 mt-1">Disetujui / selesai</div>
             </div>
         </div>
 
@@ -196,8 +214,8 @@
 
         <div class="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-rule">
             <div class="flex items-center gap-2">
-                <span class="text-sm font-bold text-ink-900 tracking-tight" id="cal-month-label">Mei 2026</span>
-                <span class="bg-ink-50 text-ink-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">3 reservasi</span>
+                <span class="text-sm font-bold text-ink-900 tracking-tight" id="cal-month-label">{{ $monthNamesId[now()->month - 1] }} {{ now()->year }}</span>
+                <span class="bg-ink-50 text-ink-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">{{ $calendarEvents->count() }} reservasi</span>
             </div>
             <div class="flex items-center gap-1">
                 <button onclick="calNav(-1)" class="cal-nav-btn" title="Bulan sebelumnya">
@@ -240,12 +258,46 @@
     {{-- ── BOTTOM GRID: table + right panel ── --}}
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
 
+        @php
+            $typeLabelMap = [
+                'full_room'      => 'Ruang + Komputer',
+                'computers_only' => 'Komputer Saja',
+                'room_only'      => 'Ruang Saja',
+            ];
+            $renderBookingRows = function ($collection) use ($monthShortId, $typeLabelMap) {
+                if ($collection->isEmpty()) {
+                    return '<tr><td colspan="4" style="padding:24px 0;text-align:center;color:rgba(10,26,71,.4);font-size:13px;">Belum ada reservasi pada tab ini.</td></tr>';
+                }
+                $out = '';
+                foreach ($collection as $b) {
+                    $d = $b->date;
+                    $dateStr = $d->day . ' ' . $monthShortId[$d->month - 1] . ' ' . $d->year;
+                    $time = substr($b->start_time, 0, 5) . ' — ' . substr($b->end_time, 0, 5);
+                    $type = $typeLabelMap[$b->booking_type] ?? $b->booking_type;
+                    $sub  = $b->booking_type === 'computers_only' ? $b->computers->count() . ' unit' : '—';
+                    $badgeView = view('components.badge', ['status' => $b->status])->render();
+                    $url = route('booking.show', $b);
+                    $out .= '<tr onclick="window.location=\'' . $url . '\'" style="cursor:pointer">'
+                          . '<td class="font-mono text-[12.5px] font-medium text-ink-700">' . e($b->booking_code) . '</td>'
+                          . '<td><div class="text-sm font-semibold text-ink-900">' . $dateStr . '</div>'
+                          . '<div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">' . $time . '</div></td>'
+                          . '<td><div class="text-sm text-ink-700/70">' . e($type) . '</div>'
+                          . '<div class="text-[11.5px] text-ink-700/40">' . $sub . '</div></td>'
+                          . '<td><div class="flex items-center justify-end gap-2.5">' . $badgeView . '</div></td>'
+                          . '</tr>';
+                }
+                return $out;
+            };
+            $upcomingHtml  = $renderBookingRows($upcomingBookings);
+            $completedHtml = $renderBookingRows($completedBookings);
+        @endphp
+
         {{-- Reservations table card --}}
         <div class="bg-white border border-rule rounded-xl shadow-card overflow-hidden order-2 lg:order-1">
             <div class="px-4 sm:px-5 pt-4 sm:pt-5 pb-0 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <span class="text-[10px] font-bold uppercase tracking-label text-ink-700/60">Reservasi</span>
-                    <span class="bg-ink-50 text-ink-700 text-[11px] font-bold px-2 py-0.5 rounded-full">3</span>
+                    <span class="bg-ink-50 text-ink-700 text-[11px] font-bold px-2 py-0.5 rounded-full" id="bookings-count">{{ $upcomingBookings->count() }}</span>
                 </div>
                 <div class="pill-tabs">
                     <div class="pill-tab active" onclick="switchBookingTab(this,'mendatang')">Mendatang</div>
@@ -262,59 +314,7 @@
                             <th style="text-align:right">Status</th>
                         </tr>
                     </thead>
-                    <tbody id="bookings-tbody">
-                        <tr>
-                            <td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0042</td>
-                            <td>
-                                <div class="text-sm font-semibold text-ink-900">12 Mei 2026</div>
-                                <div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">09:00 &#8212; 12:00</div>
-                            </td>
-                            <td>
-                                <div class="text-sm text-ink-700/70">Komputer + Ruang</div>
-                                <div class="text-[11.5px] text-ink-700/40">5 unit</div>
-                            </td>
-                            <td>
-                                <div class="flex items-center justify-end gap-2.5">
-                                    <x-badge status="approved" />
-                                    <button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0044</td>
-                            <td>
-                                <div class="text-sm font-semibold text-ink-900">18 Mei 2026</div>
-                                <div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">14:00 &#8212; 17:00</div>
-                            </td>
-                            <td>
-                                <div class="text-sm text-ink-700/70">Ruang Saja</div>
-                                <div class="text-[11.5px] text-ink-700/40">&#8212;</div>
-                            </td>
-                            <td>
-                                <div class="flex items-center justify-end gap-2.5">
-                                    <x-badge status="pending" />
-                                    <button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0036</td>
-                            <td>
-                                <div class="text-sm font-semibold text-ink-900">25 Mei 2026</div>
-                                <div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">10:00 &#8212; 12:00</div>
-                            </td>
-                            <td>
-                                <div class="text-sm text-ink-700/70">Komputer Saja</div>
-                                <div class="text-[11.5px] text-ink-700/40">2 unit</div>
-                            </td>
-                            <td>
-                                <div class="flex items-center justify-end gap-2.5">
-                                    <x-badge status="approved" />
-                                    <button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="bookings-tbody">{!! $upcomingHtml !!}</tbody>
                 </table>
             </div>
         </div>
@@ -444,23 +444,32 @@
 @push('scripts')
 <script>
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const TODAY = new Date(2026, 4, 8);
-const RESERVATIONS = { 12: [9,10,11], 18: [14,15,16], 25: [10,11] };
+const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day }});
+const RESERVATIONS = @json($calendarEvents);
+const COMPUTER_STATUSES = @json($computers->map(fn($c) => $c->status)->values());
 
 function getComputerStates(day, startHour) {
-    const states = [0,0,0,0,0,0,0,0,2];
-    if (RESERVATIONS[day] && RESERVATIONS[day].includes(Math.floor(startHour))) {
-        const n = day === 12 ? 5 : day === 18 ? 0 : 2;
-        for (let i = 0; i < n; i++) states[i] = 1;
+    // Map: 0 = available, 1 = booked at this slot, 2 = maintenance/offline
+    const states = COMPUTER_STATUSES.map(s => s === 'online' ? 0 : 2);
+    const hoursBooked = RESERVATIONS[day] || [];
+    if (hoursBooked.includes(Math.floor(startHour))) {
+        // Simplified: when the slot is booked by anyone, mark a couple of units to give visual hint.
+        // Real per-computer breakdown is fetched from the AJAX endpoint when the modal opens.
+        for (let i = 0; i < states.length; i++) {
+            if (states[i] === 0) { states[i] = 1; break; }
+        }
     }
     return states;
 }
 
-let calYear = 2026, calMonth = 4, selectedDay = null;
+let calYear = {{ now()->year }}, calMonth = {{ now()->month - 1 }}, selectedDay = null;
 
 function renderCalendar() {
     document.getElementById('cal-month-label').textContent = MONTHS_ID[calMonth] + ' ' + calYear;
-    const resvCount = (calYear === 2026 && calMonth === 4) ? 3 : 0;
+    // RESERVATIONS is keyed by day-of-month for the CURRENT real month.
+    // For other months we don't have data yet, so the dot count is empty there.
+    const onCurrentMonth = calYear === TODAY.getFullYear() && calMonth === TODAY.getMonth();
+    const resvCount = onCurrentMonth ? Object.keys(RESERVATIONS).length : 0;
     document.getElementById('cal-event-count').textContent = resvCount + ' reservasi';
     const firstDay    = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -478,11 +487,11 @@ function renderCalendar() {
         el.className = 'cal-day';
         el.textContent = d;
         const isToday  = calYear === TODAY.getFullYear() && calMonth === TODAY.getMonth() && d === TODAY.getDate();
-        const hasResv  = calYear === 2026 && calMonth === 4 && RESERVATIONS[d];
+        const hasResv  = onCurrentMonth && RESERVATIONS[d];
         const isSunday = new Date(calYear, calMonth, d).getDay() === 0;
         if (isToday)  el.classList.add('day-today');
         if (hasResv)  el.classList.add('day-has-event');
-        if (d === selectedDay && calYear === 2026 && calMonth === 4) el.classList.add('day-selected');
+        if (d === selectedDay && onCurrentMonth) el.classList.add('day-selected');
         if (isSunday) el.classList.add('day-other');
         else el.addEventListener('click', () => selectDay(d));
         grid.appendChild(el);
@@ -625,18 +634,20 @@ function closeSlotModal(e, force) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSlotModal(null, true); });
 
+const BOOKING_ROWS = {
+    mendatang: {!! json_encode($upcomingHtml) !!},
+    selesai:   {!! json_encode($completedHtml) !!},
+};
+const BOOKING_COUNTS = {
+    mendatang: {{ $upcomingBookings->count() }},
+    selesai:   {{ $completedBookings->count() }},
+};
+
 function switchBookingTab(el, mode) {
     document.querySelectorAll('.pill-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    const tbody = document.getElementById('bookings-tbody');
-    if (mode === 'mendatang') {
-        tbody.innerHTML = `<tr><td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0042</td><td><div class="text-sm font-semibold text-ink-900">12 Mei 2026</div><div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">09:00 — 12:00</div></td><td><div class="text-sm text-ink-700/70">Komputer + Ruang</div><div class="text-[11.5px] text-ink-700/40">5 unit</div></td><td><div class="flex items-center justify-end gap-2.5"><span class="badge-approved">Disetujui</span><button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button></div></td></tr>
-        <tr><td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0044</td><td><div class="text-sm font-semibold text-ink-900">18 Mei 2026</div><div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">14:00 — 17:00</div></td><td><div class="text-sm text-ink-700/70">Ruang Saja</div><div class="text-[11.5px] text-ink-700/40">—</div></td><td><div class="flex items-center justify-end gap-2.5"><span class="badge-pending">Menunggu</span><button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button></div></td></tr>
-        <tr><td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0036</td><td><div class="text-sm font-semibold text-ink-900">25 Mei 2026</div><div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">10:00 — 12:00</div></td><td><div class="text-sm text-ink-700/70">Komputer Saja</div><div class="text-[11.5px] text-ink-700/40">2 unit</div></td><td><div class="flex items-center justify-end gap-2.5"><span class="badge-approved">Disetujui</span><button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button></div></td></tr>`;
-    } else {
-        tbody.innerHTML = `<tr><td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0031</td><td><div class="text-sm font-semibold text-ink-900">2 Mei 2026</div><div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">08:00 — 10:00</div></td><td><div class="text-sm text-ink-700/70">Komputer + Ruang</div><div class="text-[11.5px] text-ink-700/40">9 unit</div></td><td><div class="flex items-center justify-end gap-2.5"><span class="badge-completed">Selesai</span><button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button></div></td></tr>
-        <tr><td class="font-mono text-[12.5px] font-medium text-ink-700">LAB-0028</td><td><div class="text-sm font-semibold text-ink-900">28 Apr 2026</div><div class="font-mono text-[11.5px] text-ink-700/40 mt-0.5">13:00 — 16:00</div></td><td><div class="text-sm text-ink-700/70">Ruang Saja</div><div class="text-[11.5px] text-ink-700/40">—</div></td><td><div class="flex items-center justify-end gap-2.5"><span class="badge-completed">Selesai</span><button class="tbl-action-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg></button></div></td></tr>`;
-    }
+    document.getElementById('bookings-tbody').innerHTML = BOOKING_ROWS[mode] || '';
+    document.getElementById('bookings-count').textContent = BOOKING_COUNTS[mode] ?? 0;
 }
 
 renderCalendar();

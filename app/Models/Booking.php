@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Booking extends Model
 {
     protected $fillable = [
-        'booking_code', 'user_id', 'booking_type', 'date',
+        'booking_code', 'user_id', 'booking_type', 'room_sharing', 'date',
         'start_time', 'end_time', 'status', 'admin_notes',
         'google_event_id', 'submitted_at', 'reviewed_at', 'reviewed_by',
     ];
@@ -43,7 +43,7 @@ class Booking extends Model
 
     public function isEditable(): bool
     {
-        return in_array($this->status, ['approved', 'under_review']);
+        return in_array($this->status, ['approved', 'completed']);
     }
 
     public function isCancellable(): bool

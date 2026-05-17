@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\BookingLogbookController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,24 +13,31 @@ Route::get('/', function () {
 // Authenticated user routes (active accounts only)
 Route::middleware(['auth', 'active'])->group(function () {
     // User dashboard (lecturer + team)
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [BookingController::class, 'dashboard'])->name('dashboard');
 
-    // Booking flow
-    Route::get('/booking/create', fn() => redirect()->route('booking.schedule'))->name('booking.create');
-    Route::get('/booking/create/logbook', fn() => view('booking.logbook'))->name('booking.logbook');
-    Route::get('/booking/create/schedule', fn() => view('booking.schedule'))->name('booking.schedule');
-    Route::get('/booking/create/review', fn() => view('booking.review'))->name('booking.review');
-    Route::get('/booking/history', fn() => view('booking.history'))->name('booking.history');
-    Route::get('/booking/{id}', fn($id) => view('booking.show', ['id' => $id]))->name('booking.show');
+    // Booking creation flow (3 steps + final submit)
+    Route::get ('/booking/create',           fn () => redirect()->route('booking.schedule'))->name('booking.create');
+    Route::get ('/booking/create/schedule',  [BookingController::class, 'showSchedule'])->name('booking.schedule');
+    Route::get ('/booking/create/logbook',   [BookingController::class, 'showLogbook'])->name('booking.logbook');
+    Route::get ('/booking/create/review',    [BookingController::class, 'showReview'])->name('booking.review');
+    Route::post('/booking',                  [BookingController::class, 'store'])->name('booking.store');
+
+    // Booking management
+    Route::get ('/booking/history',                  [BookingController::class, 'history'])->name('booking.history');
+    Route::get ('/booking/{booking}',                [BookingController::class, 'show'])->name('booking.show');
+    Route::post('/booking/{booking}/cancel',         [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::put ('/booking/{booking}/logbook',        [BookingLogbookController::class, 'update'])->name('booking.logbook.update');
+
+    // AJAX availability endpoints (session-authenticated, JSON)
+    Route::get('/api/check-availability',  [AvailabilityController::class, 'check'])->name('api.availability.check');
+    Route::get('/api/computers/available', [AvailabilityController::class, 'availableComputers'])->name('api.availability.computers');
 
     // Profile (Breeze default)
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get   ('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch ('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Admin-only routes
+    // Admin-only routes (still using closures — Phase 6 will wire these)
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
 

@@ -17,56 +17,78 @@
     </x-slot:header>
 
     @php
-        $bookings = [
-            ['code'=>'LAB-0042','type'=>'Komputer Saja (3 unit)','date'=>'12 Mei 2026','time'=>'09:00 – 12:00','category'=>'Penelitian','status'=>'pending'],
-            ['code'=>'LAB-0038','type'=>'Ruang + Komputer','date'=>'05 Mei 2026','time'=>'14:00 – 17:00','category'=>'Praktikum','status'=>'approved'],
-            ['code'=>'LAB-0031','type'=>'Komputer Saja (2 unit)','date'=>'28 Apr 2026','time'=>'10:00 – 12:00','category'=>'Tugas Akhir / Skripsi','status'=>'completed'],
-            ['code'=>'LAB-0027','type'=>'Ruang Saja','date'=>'20 Apr 2026','time'=>'13:00 – 15:00','category'=>'Project Akademik','status'=>'rejected'],
-            ['code'=>'LAB-0019','type'=>'Ruang + Komputer','date'=>'10 Apr 2026','time'=>'08:00 – 11:00','category'=>'Penelitian','status'=>'cancelled'],
+        $typeLabelMap = [
+            'full_room'      => 'Ruang + Komputer',
+            'computers_only' => 'Komputer Saja',
+            'room_only'      => 'Ruang Saja',
         ];
+        $categoryMap = [
+            'penelitian'       => 'Penelitian',
+            'project_akademik' => 'Project Akademik',
+            'praktikum'        => 'Praktikum',
+            'tugas_akhir'      => 'Tugas Akhir / Skripsi',
+            'lainnya'          => 'Lainnya',
+        ];
+        $monthShort = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        $activeStatus = request('status', 'all');
     @endphp
 
     {{-- Filter bar --}}
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap" x-data="{ status: 'all' }">
+    <form method="GET" action="{{ route('booking.history') }}" class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
         {{-- Status chips --}}
         <div class="flex flex-wrap gap-2">
-            @foreach (['all' => 'Semua', 'pending' => 'Menunggu', 'approved' => 'Disetujui', 'completed' => 'Selesai', 'rejected' => 'Ditolak'] as $val => $label)
-                <button type="button"
-                        @click="status = '{{ $val }}'"
-                        :class="status === '{{ $val }}' ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-ink-700/70 border-rule hover:border-ink-300'"
-                        class="px-3 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-label border rounded-md transition-all whitespace-nowrap">
+            @foreach (['all' => 'Semua', 'submitted' => 'Diajukan', 'under_review' => 'Tinjauan', 'approved' => 'Disetujui', 'completed' => 'Selesai', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'] as $val => $label)
+                <a href="{{ route('booking.history', array_merge(request()->except('status', 'page'), $val === 'all' ? [] : ['status' => $val])) }}"
+                   class="{{ $activeStatus === $val ? 'bg-ink-900 text-white border-ink-900' : 'bg-white text-ink-700/70 border-rule hover:border-ink-300' }} px-3 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-semibold uppercase tracking-label border rounded-md transition-all whitespace-nowrap inline-block">
                     {{ $label }}
-                </button>
+                </a>
             @endforeach
         </div>
 
         {{-- Search + date --}}
         <div class="flex gap-2 sm:ml-auto">
-            <input type="search" placeholder="Cari kode…"
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari kode…"
                    class="form-input py-1.5 text-xs flex-1 sm:w-44 sm:flex-none">
-            <input type="date" class="form-input py-1.5 text-xs flex-1 sm:w-36 sm:flex-none">
+            <input type="date" name="date" value="{{ request('date') }}"
+                   class="form-input py-1.5 text-xs flex-1 sm:w-36 sm:flex-none">
+            <button type="submit" class="btn-ghost btn-sm">Filter</button>
         </div>
-    </div>
+    </form>
+
+    @if ($bookings->isEmpty())
+        <x-empty-state
+            title="Belum ada reservasi"
+            desc="Reservasi yang Anda buat akan muncul di sini." />
+    @else
 
     {{-- Cards (mobile) --}}
     <div class="sm:hidden space-y-3">
         @foreach ($bookings as $b)
-            <a href="{{ route('booking.show', 1) }}"
+            @php
+                $typeLabel = $typeLabelMap[$b->booking_type] ?? $b->booking_type;
+                if ($b->booking_type === 'computers_only') {
+                    $typeLabel .= ' (' . $b->computers->count() . ' unit)';
+                }
+                $dateObj = $b->date;
+                $dateStr = $dateObj->day . ' ' . $monthShort[$dateObj->month - 1] . ' ' . $dateObj->year;
+                $time    = substr($b->start_time, 0, 5) . ' – ' . substr($b->end_time, 0, 5);
+            @endphp
+            <a href="{{ route('booking.show', $b) }}"
                class="block bg-white border border-rule rounded-xl shadow-card p-4
                       hover:shadow-md active:scale-[0.99] transition-all
-                      {{ $b['status'] === 'pending' ? 'border-l-[3px] border-l-mark-500' : '' }}">
+                      {{ in_array($b->status, ['submitted','under_review']) ? 'border-l-[3px] border-l-mark-500' : '' }}">
                 <div class="flex items-center justify-between gap-2 mb-2">
-                    <span class="font-mono text-sm font-semibold text-ink-900">{{ $b['code'] }}</span>
-                    <x-badge :status="$b['status']" />
+                    <span class="font-mono text-sm font-semibold text-ink-900">{{ $b->booking_code }}</span>
+                    <x-badge :status="$b->status" />
                 </div>
-                <div class="text-sm font-medium text-ink-900 mb-1">{{ $b['type'] }}</div>
+                <div class="text-sm font-medium text-ink-900 mb-1">{{ $typeLabel }}</div>
                 <div class="flex items-center gap-2 text-xs text-ink-700/60 font-mono">
-                    <span>{{ $b['date'] }}</span>
+                    <span>{{ $dateStr }}</span>
                     <span class="text-ink-700/30">·</span>
-                    <span>{{ $b['time'] }}</span>
+                    <span>{{ $time }}</span>
                 </div>
                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-rule">
-                    <span class="text-xs text-ink-700/70">{{ $b['category'] }}</span>
+                    <span class="text-xs text-ink-700/70">{{ $categoryMap[$b->logbook->category ?? null] ?? '—' }}</span>
                     <span class="text-xs font-semibold text-ink-700 inline-flex items-center gap-1">
                         Lihat
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,17 +115,26 @@
             </thead>
             <tbody>
                 @foreach ($bookings as $b)
-                    <tr class="{{ $b['status'] === 'pending' ? 'row-mark' : '' }}">
-                        <td class="mono-data">{{ $b['code'] }}</td>
-                        <td class="text-ink-700/80">{{ $b['type'] }}</td>
+                    @php
+                        $typeLabel = $typeLabelMap[$b->booking_type] ?? $b->booking_type;
+                        if ($b->booking_type === 'computers_only') {
+                            $typeLabel .= ' (' . $b->computers->count() . ' unit)';
+                        }
+                        $dateObj = $b->date;
+                        $dateStr = $dateObj->day . ' ' . $monthShort[$dateObj->month - 1] . ' ' . $dateObj->year;
+                        $time    = substr($b->start_time, 0, 5) . ' – ' . substr($b->end_time, 0, 5);
+                    @endphp
+                    <tr class="{{ in_array($b->status, ['submitted','under_review']) ? 'row-mark' : '' }}">
+                        <td class="mono-data">{{ $b->booking_code }}</td>
+                        <td class="text-ink-700/80">{{ $typeLabel }}</td>
                         <td>
-                            <div class="mono-data text-ink-900 text-sm">{{ $b['date'] }}</div>
-                            <div class="mono-code">{{ $b['time'] }}</div>
+                            <div class="mono-data text-ink-900 text-sm">{{ $dateStr }}</div>
+                            <div class="mono-code">{{ $time }}</div>
                         </td>
-                        <td class="text-ink-700/70 text-sm">{{ $b['category'] }}</td>
-                        <td><x-badge :status="$b['status']" /></td>
+                        <td class="text-ink-700/70 text-sm">{{ $categoryMap[$b->logbook->category ?? null] ?? '—' }}</td>
+                        <td><x-badge :status="$b->status" /></td>
                         <td class="text-right">
-                            <a href="{{ route('booking.show', 1) }}" class="btn-ghost btn-sm">Lihat</a>
+                            <a href="{{ route('booking.show', $b) }}" class="btn-ghost btn-sm">Lihat</a>
                         </td>
                     </tr>
                 @endforeach
@@ -111,13 +142,11 @@
         </table>
     </div>
 
-    {{-- Pagination placeholder --}}
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4 text-xs text-ink-700/50">
-        <span>Menampilkan 5 dari 5 entri</span>
-        <div class="flex gap-1">
-            <button class="px-3 py-1.5 rounded border border-rule bg-white text-ink-700/50 cursor-not-allowed">← Sebelumnya</button>
-            <button class="px-3 py-1.5 rounded border border-rule bg-white text-ink-700/50 cursor-not-allowed">Berikutnya →</button>
-        </div>
+    {{-- Pagination --}}
+    <div class="mt-4">
+        {{ $bookings->links() }}
     </div>
+
+    @endif
 
 </x-app-layout>
