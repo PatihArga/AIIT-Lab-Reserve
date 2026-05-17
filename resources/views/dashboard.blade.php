@@ -432,7 +432,7 @@
 
             <div class="flex gap-2">
                 <button class="btn-ghost flex-1 justify-center" onclick="closeSlotModal(null, true)">Tutup</button>
-                <button class="btn-mark flex-[2] justify-center" id="modal-reserve-btn" onclick="closeSlotModal(null, true)">
+                <button class="btn-mark flex-[2] justify-center" id="modal-reserve-btn" onclick="navigateToBooking()">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Buat Reservasi Sesi Ini
                 </button>
@@ -446,21 +446,10 @@
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day }});
 const RESERVATIONS = @json($calendarEvents);
-const COMPUTER_STATUSES = @json($computers->map(fn($c) => $c->status)->values());
 
-function getComputerStates(day, startHour) {
-    // Map: 0 = available, 1 = booked at this slot, 2 = maintenance/offline
-    const states = COMPUTER_STATUSES.map(s => s === 'online' ? 0 : 2);
-    const hoursBooked = RESERVATIONS[day] || [];
-    if (hoursBooked.includes(Math.floor(startHour))) {
-        // Simplified: when the slot is booked by anyone, mark a couple of units to give visual hint.
-        // Real per-computer breakdown is fetched from the AJAX endpoint when the modal opens.
-        for (let i = 0; i < states.length; i++) {
-            if (states[i] === 0) { states[i] = 1; break; }
-        }
-    }
-    return states;
-}
+let modalDay = null, modalSlot = null, selectedPcIds = [];
+const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
+const BOOKING_SCHEDULE_URL = @json(route('booking.schedule'));
 
 let calYear = {{ now()->year }}, calMonth = {{ now()->month - 1 }}, selectedDay = null;
 
@@ -572,9 +561,11 @@ function resetSlots() {
 let currentResType = 'computer', currentSharing = 'exclusive';
 
 function selectResType(type) {
+    selectedPcIds = [];
     currentResType = type;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
     document.querySelector('.type-card[data-type="' + type + '"]').classList.add('active');
+    document.querySelectorAll('.computer-slot').forEach(el => { el.style.outline = ''; el.style.outlineOffset = ''; });
     const sharingRow = document.getElementById('modal-sharing-row');
     const computersSection = document.getElementById('modal-computers-section');
     if (type === 'room') {
@@ -592,12 +583,15 @@ function selectSharing(val) {
     document.querySelector('.sharing-btn[data-val="' + val + '"]').classList.add('active');
 }
 
-function openSlotModal(day, slot) {
+async function openSlotModal(day, slot) {
+    modalDay = day; modalSlot = slot; selectedPcIds = [];
+
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
         dayNames[new Date(calYear, calMonth, day).getDay()] + ', ' + day + ' ' + MONTHS_ID[calMonth] + ' ' + calYear;
     const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
     document.getElementById('modal-time-title').textContent = fmt(slot.startMin) + ' — ' + fmt(slot.endMin);
+
     currentResType = 'computer'; currentSharing = 'exclusive';
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
     document.querySelector('.type-card[data-type="computer"]').classList.add('active');
@@ -606,25 +600,113 @@ function openSlotModal(day, slot) {
     document.getElementById('modal-sharing-row').style.display = 'none';
     document.getElementById('modal-computers-section').style.display = 'block';
     document.getElementById('modal-computer-label').textContent = 'Pilih unit komputer';
+
+    const computers = document.getElementById('modal-computers');
+    computers.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">Memuat ketersediaan…</div>';
+    document.getElementById('modal-summary').innerHTML = '';
+    document.getElementById('modal-reserve-btn').disabled = true;
+    document.getElementById('slot-modal-overlay').classList.add('open');
+
+    const mm = String(calMonth + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const dateStr = calYear + '-' + mm + '-' + dd;
+    const params = new URLSearchParams({
+        date: dateStr,
+        start_time: fmt(slot.startMin),
+        end_time: fmt(slot.endMin),
+    });
+
+    let computerList;
+    try {
+        const res = await fetch(COMPUTERS_AVAIL_URL + '?' + params.toString(), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+        if (!res.ok) throw new Error('http ' + res.status);
+        const data = await res.json();
+        computerList = data.computers;
+    } catch (e) {
+        computers.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:#dc2626;font-size:12px;">Gagal memuat data. Coba lagi.</div>';
+        return;
+    }
+
+    renderModalComputers(computerList);
+    document.getElementById('modal-reserve-btn').disabled = false;
+}
+
+function renderModalComputers(computerList) {
     const computers = document.getElementById('modal-computers');
     computers.innerHTML = '';
-    const states = getComputerStates(day, slot.startHour);
     let avail = 0, booked = 0, maint = 0;
-    states.forEach((state, i) => {
+
+    computerList.forEach((c, i) => {
         const el = document.createElement('div');
-        const cls = state === 0 ? 'slot-available' : state === 1 ? 'slot-booked-pc' : 'slot-maintenance-pc';
+        const isAvail = c.available;
+        const isMaint = c.status !== 'online';
+        const cls = isAvail ? 'slot-available' : isMaint ? 'slot-maintenance-pc' : 'slot-booked-pc';
         el.className = 'computer-slot ' + cls;
+        el.dataset.pcId = c.id;
         el.style.animationDelay = (i * 55) + 'ms';
-        const lbl = state === 0 ? 'Tersedia' : state === 1 ? 'Terpakai' : 'Perawatan';
-        el.innerHTML = '<div class="slot-monitor"></div><div class="slot-num">PC-' + String(i+1).padStart(2,'0') + '</div><div class="slot-status-text">' + lbl + '</div>';
-        if (state === 0) avail++; else if (state === 1) booked++; else maint++;
+
+        const lbl = isAvail ? 'Tersedia' : isMaint ? 'Perawatan' : 'Terpakai';
+        el.innerHTML = '<div class="slot-monitor"></div>'
+                     + '<div class="slot-num">' + c.label + '</div>'
+                     + '<div class="slot-status-text">' + lbl + '</div>';
+
+        if (isAvail) {
+            avail++;
+            el.addEventListener('click', () => togglePcSelection(el, c.id));
+        } else if (isMaint) {
+            maint++;
+        } else {
+            booked++;
+        }
+
         computers.appendChild(el);
     });
+
     document.getElementById('modal-summary').innerHTML =
         '<div class="flex items-center gap-1.5 flex-1"><div class="w-2 h-2 rounded-full shrink-0" style="background:#2eb8a0"></div><span class="font-bold text-ink-900">' + avail + '</span>&nbsp;<span class="text-ink-700/40">tersedia</span></div>' +
         '<div class="flex items-center gap-1.5 flex-1"><div class="w-2 h-2 rounded-full shrink-0" style="background:#F5B800"></div><span class="font-bold text-ink-900">' + booked + '</span>&nbsp;<span class="text-ink-700/40">terpakai</span></div>' +
         '<div class="flex items-center gap-1.5 flex-1"><div class="w-2 h-2 rounded-full shrink-0" style="background:rgba(15,36,96,.14)"></div><span class="font-bold text-ink-900">' + maint + '</span>&nbsp;<span class="text-ink-700/40">perawatan</span></div>';
-    document.getElementById('slot-modal-overlay').classList.add('open');
+}
+
+function togglePcSelection(el, pcId) {
+    if (currentResType !== 'computer') return;
+    const idx = selectedPcIds.indexOf(pcId);
+    if (idx === -1) {
+        selectedPcIds.push(pcId);
+        el.style.outline = '2px solid #2eb8a0';
+        el.style.outlineOffset = '2px';
+    } else {
+        selectedPcIds.splice(idx, 1);
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+    }
+}
+
+function navigateToBooking() {
+    if (!modalDay || !modalSlot) return;
+
+    const typeMap = { computer: 'computers_only', both: 'full_room', room: 'room_only' };
+    const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+    const mm = String(calMonth + 1).padStart(2, '0');
+    const dd = String(modalDay).padStart(2, '0');
+
+    const params = new URLSearchParams();
+    params.set('type', typeMap[currentResType] || currentResType);
+    params.set('date', calYear + '-' + mm + '-' + dd);
+    params.set('start_time', fmt(modalSlot.startMin));
+    params.set('end_time', fmt(modalSlot.endMin));
+
+    if (currentResType === 'room') {
+        params.set('room_sharing', currentSharing);
+    }
+    if (currentResType === 'computer' && selectedPcIds.length > 0) {
+        selectedPcIds.forEach(id => params.append('computers[]', id));
+    }
+
+    window.location.href = BOOKING_SCHEDULE_URL + '?' + params.toString();
 }
 
 function closeSlotModal(e, force) {

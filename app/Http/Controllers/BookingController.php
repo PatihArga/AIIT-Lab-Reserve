@@ -76,20 +76,35 @@ class BookingController extends Controller
                 ->unique()->sort()->values()
             );
 
-        $computers = Computer::orderBy('unit_number')->get(['id', 'unit_number', 'label', 'status']);
-
         return view('dashboard', compact(
-            'upcomingBookings', 'completedBookings', 'stats', 'calendarEvents', 'computers'
+            'upcomingBookings', 'completedBookings', 'stats', 'calendarEvents'
         ));
     }
 
     // ── Booking creation flow ─────────────────────────────────────────────
 
     /** Step 1: schedule (type + date + time + computers) */
-    public function showSchedule(): View
+    public function showSchedule(Request $request): View|RedirectResponse
     {
-        $computers   = Computer::orderBy('unit_number')->get(['id', 'unit_number', 'label', 'status']);
-        $draft       = session('booking_draft.schedule');
+        // If the dashboard modal navigated here with prefill params, seed the session draft
+        // and redirect to the clean URL so the form renders without query params.
+        if ($request->hasAny(['type', 'date', 'start_time', 'end_time'])) {
+            $typeMap = ['computer' => 'computers_only', 'both' => 'full_room', 'room' => 'room_only'];
+            $rawType = $request->input('type', '');
+            $prefill = [
+                'type'         => $typeMap[$rawType] ?? $rawType,
+                'date'         => $request->input('date', ''),
+                'start_time'   => $request->input('start_time', ''),
+                'end_time'     => $request->input('end_time', ''),
+                'room_sharing' => $request->input('room_sharing'),
+                'computers'    => array_map('intval', (array) $request->input('computers', [])),
+            ];
+            session(['booking_draft.schedule' => $prefill]);
+            return redirect()->route('booking.schedule');
+        }
+
+        $computers = Computer::orderBy('unit_number')->get(['id', 'unit_number', 'label', 'status']);
+        $draft     = session('booking_draft.schedule');
         return view('booking.schedule', compact('computers', 'draft'));
     }
 
