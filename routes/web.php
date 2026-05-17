@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminComputerController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminRequestController;
+use App\Http\Controllers\Admin\AdminTeamController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingLogbookController;
@@ -37,24 +42,36 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::patch ('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Admin-only routes (still using closures — Phase 6 will wire these)
+    // Admin-only routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
         // Requests
-        Route::get('/requests', fn() => view('admin.requests.index'))->name('requests.index');
-        Route::get('/requests/{id}', fn($id) => view('admin.requests.show', ['id' => $id]))->name('requests.show');
+        Route::get ('/requests',                         [AdminRequestController::class, 'index'])->name('requests.index');
+        Route::get ('/requests/{booking}',               [AdminRequestController::class, 'show'])->name('requests.show');
+        Route::post('/requests/{booking}/approve',       [AdminRequestController::class, 'approve'])->name('requests.approve');
+        Route::post('/requests/{booking}/reject',        [AdminRequestController::class, 'reject'])->name('requests.reject');
+        Route::post('/requests/{booking}/complete',      [AdminRequestController::class, 'complete'])->name('requests.complete');
 
         // Computers
-        Route::get('/computers', fn() => view('admin.computers.index'))->name('computers.index');
+        Route::get ('/computers',                        [AdminComputerController::class, 'index'])->name('computers.index');
+        Route::post('/computers/{computer}/status',      [AdminComputerController::class, 'updateStatus'])->name('computers.status');
 
-        // Users & Teams
-        Route::get('/users', fn() => view('admin.users.index'))->name('users.index');
-        Route::get('/users/create', fn() => view('admin.users.create'))->name('users.create');
-        Route::get('/users/{id}/edit', fn($id) => view('admin.users.edit', ['id' => $id]))->name('users.edit');
-        Route::get('/teams/create', fn() => view('admin.teams.create'))->name('teams.create');
+        // Users (lecturers + team accounts)
+        Route::get ('/users',                            [AdminUserController::class, 'index'])->name('users.index');
+        Route::get ('/users/create',                     [AdminUserController::class, 'create'])->name('users.create');
+        Route::post('/users',                            [AdminUserController::class, 'store'])->name('users.store');
+        Route::get ('/users/{user}/edit',                [AdminUserController::class, 'edit'])->name('users.edit');
+        Route::put ('/users/{user}',                     [AdminUserController::class, 'update'])->name('users.update');
 
-        // Reports, Audit Log, Settings
+        // Teams
+        Route::get ('/teams/create',                     [AdminTeamController::class, 'create'])->name('teams.create');
+        Route::post('/teams',                            [AdminTeamController::class, 'store'])->name('teams.store');
+        Route::get ('/teams/{team}/edit',                [AdminTeamController::class, 'edit'])->name('teams.edit');
+        Route::put ('/teams/{team}',                     [AdminTeamController::class, 'update'])->name('teams.update');
+
+        // Phase 8 (still closures — reports, audit log, settings)
         Route::get('/reports', fn() => view('admin.reports.index'))->name('reports.index');
         Route::get('/audit-log', fn() => view('admin.audit-log.index'))->name('audit-log.index');
         Route::get('/settings', fn() => view('admin.settings.index'))->name('settings.index');

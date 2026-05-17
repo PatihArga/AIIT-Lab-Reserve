@@ -92,7 +92,48 @@
     </div>
 
     {{-- Toast container --}}
-    <div id="toast-root" class="fixed bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2"></div>
+    <div id="toast-root" class="fixed bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2 max-w-sm">
+        @if (session('success'))
+            <div x-data="{ show: true }" x-show="show"
+                 x-init="setTimeout(() => show = false, 5000)"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="bg-white border border-status-approved/30 shadow-card rounded-xl px-4 py-3 flex items-start gap-3"
+                 style="display:none">
+                <svg class="w-5 h-5 text-status-approved shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <div class="flex-1 text-sm text-ink-900">{{ session('success') }}</div>
+                <button @click="show = false" class="text-ink-700/40 hover:text-ink-900" aria-label="Tutup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        @endif
+        @if (session('error'))
+            <div x-data="{ show: true }" x-show="show"
+                 x-init="setTimeout(() => show = false, 6000)"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="bg-white border border-status-rejected/30 shadow-card rounded-xl px-4 py-3 flex items-start gap-3"
+                 style="display:none">
+                <svg class="w-5 h-5 text-status-rejected shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <div class="flex-1 text-sm text-ink-900">{{ session('error') }}</div>
+                <button @click="show = false" class="text-ink-700/40 hover:text-ink-900" aria-label="Tutup">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        @endif
+    </div>
 
     @stack('scripts')
 </body>

@@ -7,24 +7,24 @@
             meta="Diperbarui beberapa detik lalu · {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}">
 
             <x-slot:actions>
-                <button class="btn-ghost btn-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Ekspor Laporan
-                </button>
-                <a href="{{ route('admin.requests.index') }}" class="btn-mark btn-sm">
+                <a href="{{ route('admin.requests.index', ['status' => 'pending']) }}" class="btn-mark btn-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
                     </svg>
-                    Tinjau 3 Permintaan
+                    Tinjau {{ $stats['pending_count'] }} Permintaan
                 </a>
             </x-slot:actions>
         </x-page-header>
     </x-slot:header>
 
+    @php
+        $online      = $computers->where('status', 'online')->count();
+        $maintenance = $computers->where('status', 'maintenance')->count();
+        $offline     = $computers->where('status', 'offline')->count();
+    @endphp
+
     {{-- Stat cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
 
         {{-- Menunggu Tinjauan (primary, mark accent) --}}
         <div class="bg-white border border-rule rounded-xl shadow-card p-4 sm:p-5
@@ -39,8 +39,8 @@
                     </svg>
                 </div>
             </div>
-            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">3</div>
-            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">2 dalam 24 jam terakhir</div>
+            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">{{ $stats['pending_count'] }}</div>
+            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">Submitted + Under Review</div>
         </div>
 
         {{-- Disetujui Bulan Ini --}}
@@ -55,10 +55,8 @@
                     </svg>
                 </div>
             </div>
-            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">47</div>
-            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">
-                <span class="text-status-approved font-semibold">↑ 12%</span> vs bulan lalu
-            </div>
+            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">{{ $stats['approved_this_month'] }}</div>
+            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">{{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</div>
         </div>
 
         {{-- Unit Aktif --}}
@@ -73,24 +71,8 @@
                     </svg>
                 </div>
             </div>
-            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">9</div>
-            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">8 daring · 1 perawatan</div>
-        </div>
-
-        {{-- Pemakaian Minggu Ini --}}
-        <div class="bg-white border border-rule rounded-xl shadow-card p-4 sm:p-5 flex flex-col">
-            <div class="flex items-start justify-between gap-2 mb-3">
-                <div class="text-[10px] sm:text-[11px] uppercase tracking-label font-bold text-ink-700/60 leading-tight">
-                    Pemakaian Minggu Ini
-                </div>
-                <div class="w-8 h-8 rounded-md bg-ink-50 border border-rule flex items-center justify-center shrink-0">
-                    <svg class="w-4 h-4 text-ink-700/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">62%</div>
-            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">42 / 68 jam tersedia</div>
+            <div class="text-[1.7rem] sm:text-[2rem] font-bold text-ink-900 leading-none tracking-tight">{{ $stats['computers_online'] }}<span class="text-base text-ink-700/40">/{{ $stats['computers_total'] }}</span></div>
+            <div class="text-[11px] sm:text-xs text-ink-700/50 mt-2">{{ $online }} daring · {{ $maintenance }} perawatan</div>
         </div>
 
     </div>
@@ -99,15 +81,23 @@
     <div class="bg-white border border-rule rounded-lg px-4 py-2.5 mb-8 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
         <div class="flex items-center gap-2 text-xs">
             <span class="w-2 h-2 rounded-sm" style="background:#2eb8a0"></span>
-            <span class="font-mono font-semibold text-ink-900">8</span>
+            <span class="font-mono font-semibold text-ink-900">{{ $online }}</span>
             <span class="text-ink-700/60">unit online</span>
         </div>
         <span class="hidden sm:inline text-ink-700/20">·</span>
         <div class="flex items-center gap-2 text-xs">
             <span class="w-2 h-2 rounded-sm bg-mark-500"></span>
-            <span class="font-mono font-semibold text-ink-900">1</span>
+            <span class="font-mono font-semibold text-ink-900">{{ $maintenance }}</span>
             <span class="text-ink-700/60">perawatan</span>
         </div>
+        @if ($offline > 0)
+            <span class="hidden sm:inline text-ink-700/20">·</span>
+            <div class="flex items-center gap-2 text-xs">
+                <span class="w-2 h-2 rounded-sm bg-ink-700/40"></span>
+                <span class="font-mono font-semibold text-ink-900">{{ $offline }}</span>
+                <span class="text-ink-700/60">offline</span>
+            </div>
+        @endif
         <span class="hidden sm:inline text-ink-700/20">·</span>
         <div class="text-xs text-ink-700/60">
             Lab buka <span class="font-mono font-semibold text-ink-900">08:00–22:00</span> hari ini
@@ -115,16 +105,12 @@
     </div>
 
     @php
-        $pending = [
-            ['code'=>'LAB-0042','applicant'=>'Tim Alpha','pic'=>'PIC: Dr. Budi Santoso','type'=>'Komputer + Ruang','date'=>'12 Mei 2026','time'=>'09:00 — 12:00','status'=>'pending'],
-            ['code'=>'LAB-0043','applicant'=>'Dr. Siti Hartati','pic'=>'Dosen TI','type'=>'Komputer Saja (4 unit)','date'=>'13 Mei 2026','time'=>'14:00 — 16:00','status'=>'pending'],
-            ['code'=>'LAB-0044','applicant'=>'Tim Beta','pic'=>'PIC: Prof. Andi W.','type'=>'Ruang Saja','date'=>'14 Mei 2026','time'=>'10:00 — 13:00','status'=>'pending'],
-        ];
-
-        $recent = [
-            ['code'=>'LAB-0040','applicant'=>'Dr. Maria Lestari','type'=>'Komputer Saja (2)','date'=>'11 Mei 2026','time'=>'08:00 — 10:00','status'=>'approved'],
-            ['code'=>'LAB-0039','applicant'=>'Tim Gamma','type'=>'Komputer + Ruang','date'=>'10 Mei 2026','time'=>'13:00 — 17:00','status'=>'completed'],
-        ];
+        $typeLabel = fn($t) => match ($t) {
+            'full_room'      => 'Komputer + Ruang',
+            'computers_only' => 'Komputer Saja',
+            'room_only'      => 'Ruang Saja',
+            default          => $t,
+        };
     @endphp
 
     {{-- Two-column: Pending requests + Activity feed --}}
@@ -137,7 +123,7 @@
             <div class="px-5 py-4 border-b border-rule flex items-center justify-between gap-3">
                 <div class="section-label flex items-baseline gap-2">
                     <span>Permintaan Aktif</span>
-                    <span class="font-mono text-ink-700/40 normal-case tracking-normal">· 3</span>
+                    <span class="font-mono text-ink-700/40 normal-case tracking-normal">· {{ $pendingBookings->count() }}</span>
                 </div>
                 <a href="{{ route('admin.requests.index') }}" class="btn-ghost btn-sm">
                     Lihat Semua
@@ -147,7 +133,7 @@
                 </a>
             </div>
 
-            @if (count($pending) === 0 && count($recent) === 0)
+            @if ($pendingBookings->isEmpty() && $recentActivity->isEmpty())
                 <div class="p-5">
                     <x-empty-state
                         title="Belum ada permintaan"
@@ -156,20 +142,20 @@
             @else
                 {{-- Mobile rows --}}
                 <div class="lg:hidden divide-y divide-rule">
-                    @foreach ($pending as $r)
-                        <a href="{{ route('admin.requests.show', 1) }}"
+                    @foreach ($pendingBookings as $b)
+                        <a href="{{ route('admin.requests.show', $b) }}"
                            class="block p-4 active:bg-ink-50/40 transition-colors border-l-[3px] border-l-mark-500">
                             <div class="flex items-center justify-between gap-2 mb-2">
-                                <span class="font-mono text-sm font-semibold text-ink-900">{{ $r['code'] }}</span>
-                                <x-badge :status="$r['status']" />
+                                <span class="font-mono text-sm font-semibold text-ink-900">{{ $b->booking_code }}</span>
+                                <x-badge :status="$b->status" />
                             </div>
-                            <div class="text-sm font-medium text-ink-900">{{ $r['applicant'] }}</div>
-                            <div class="text-xs text-ink-700/50 mb-2">{{ $r['pic'] }}</div>
-                            <div class="text-sm text-ink-700/80 mb-1">{{ $r['type'] }}</div>
+                            <div class="text-sm font-medium text-ink-900">{{ $b->user->name }}</div>
+                            <div class="text-xs text-ink-700/50 mb-2">{{ ucfirst($b->user->role) }}</div>
+                            <div class="text-sm text-ink-700/80 mb-1">{{ $typeLabel($b->booking_type) }}</div>
                             <div class="flex items-center gap-2 text-xs text-ink-700/60 font-mono">
-                                <span>{{ $r['date'] }}</span>
+                                <span>{{ $b->date->translatedFormat('d M Y') }}</span>
                                 <span class="text-ink-700/30">·</span>
-                                <span>{{ $r['time'] }}</span>
+                                <span>{{ substr($b->start_time, 0, 5) }} — {{ substr($b->end_time, 0, 5) }}</span>
                             </div>
                             <div class="flex items-center justify-end mt-3">
                                 <span class="btn-ghost btn-sm pointer-events-none">Tinjau</span>
@@ -177,26 +163,26 @@
                         </a>
                     @endforeach
 
-                    @if (count($recent) > 0)
+                    @if ($recentActivity->isNotEmpty())
                         <div class="px-4 py-2 bg-ink-50/50 text-[10px] uppercase tracking-label font-bold text-ink-700/50">
                             Baru Diproses
                         </div>
                     @endif
 
-                    @foreach ($recent as $r)
-                        <div class="p-4 opacity-80">
+                    @foreach ($recentActivity as $b)
+                        <a href="{{ route('admin.requests.show', $b) }}" class="block p-4 opacity-80">
                             <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="font-mono text-sm font-semibold text-ink-700/60">{{ $r['code'] }}</span>
-                                <x-badge :status="$r['status']" />
+                                <span class="font-mono text-sm font-semibold text-ink-700/60">{{ $b->booking_code }}</span>
+                                <x-badge :status="$b->status" />
                             </div>
-                            <div class="text-sm text-ink-700/70">{{ $r['applicant'] }}</div>
-                            <div class="text-sm text-ink-700/60 mt-1">{{ $r['type'] }}</div>
+                            <div class="text-sm text-ink-700/70">{{ $b->user->name }}</div>
+                            <div class="text-sm text-ink-700/60 mt-1">{{ $typeLabel($b->booking_type) }}</div>
                             <div class="flex items-center gap-2 text-xs text-ink-700/50 font-mono mt-1">
-                                <span>{{ $r['date'] }}</span>
+                                <span>{{ $b->date->translatedFormat('d M Y') }}</span>
                                 <span class="text-ink-700/30">·</span>
-                                <span>{{ $r['time'] }}</span>
+                                <span>{{ substr($b->start_time, 0, 5) }} — {{ substr($b->end_time, 0, 5) }}</span>
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
 
@@ -214,26 +200,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($pending as $r)
+                            @forelse ($pendingBookings as $b)
                                 <tr class="row-mark">
-                                    <td class="mono-data !pl-5">{{ $r['code'] }}</td>
+                                    <td class="mono-data !pl-5">{{ $b->booking_code }}</td>
                                     <td>
-                                        <div class="font-medium">{{ $r['applicant'] }}</div>
-                                        <div class="text-xs text-ink-700/50">{{ $r['pic'] }}</div>
+                                        <div class="font-medium">{{ $b->user->name }}</div>
+                                        <div class="text-xs text-ink-700/50">{{ ucfirst($b->user->role) }}</div>
                                     </td>
-                                    <td class="text-ink-700/70">{{ $r['type'] }}</td>
+                                    <td class="text-ink-700/70">{{ $typeLabel($b->booking_type) }}</td>
                                     <td>
-                                        <div class="mono-data text-ink-900">{{ $r['date'] }}</div>
-                                        <div class="mono-code">{{ $r['time'] }}</div>
+                                        <div class="mono-data text-ink-900">{{ $b->date->translatedFormat('d M Y') }}</div>
+                                        <div class="mono-code">{{ substr($b->start_time, 0, 5) }} — {{ substr($b->end_time, 0, 5) }}</div>
                                     </td>
-                                    <td><x-badge :status="$r['status']" /></td>
+                                    <td><x-badge :status="$b->status" /></td>
                                     <td class="text-right !pr-5">
-                                        <a href="{{ route('admin.requests.show', 1) }}" class="btn-ghost btn-sm">Tinjau</a>
+                                        <a href="{{ route('admin.requests.show', $b) }}" class="btn-ghost btn-sm">Tinjau</a>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                @if ($recentActivity->isEmpty())
+                                    <tr>
+                                        <td colspan="6" class="!py-6 text-center text-ink-700/50">Belum ada permintaan menunggu.</td>
+                                    </tr>
+                                @endif
+                            @endforelse
 
-                            @if (count($recent) > 0)
+                            @if ($recentActivity->isNotEmpty())
                                 <tr class="bg-ink-50/50">
                                     <td colspan="6" class="!py-2 !pl-5 text-[10px] uppercase tracking-label font-bold text-ink-700/50">
                                         Baru Diproses
@@ -241,17 +233,19 @@
                                 </tr>
                             @endif
 
-                            @foreach ($recent as $r)
+                            @foreach ($recentActivity as $b)
                                 <tr>
-                                    <td class="mono-data text-ink-700/60 !pl-5">{{ $r['code'] }}</td>
-                                    <td class="text-ink-700/70">{{ $r['applicant'] }}</td>
-                                    <td class="text-ink-700/50">{{ $r['type'] }}</td>
+                                    <td class="mono-data text-ink-700/60 !pl-5">{{ $b->booking_code }}</td>
+                                    <td class="text-ink-700/70">{{ $b->user->name }}</td>
+                                    <td class="text-ink-700/50">{{ $typeLabel($b->booking_type) }}</td>
                                     <td>
-                                        <div class="mono-data text-ink-700/60">{{ $r['date'] }}</div>
-                                        <div class="mono-code text-ink-700/40">{{ $r['time'] }}</div>
+                                        <div class="mono-data text-ink-700/60">{{ $b->date->translatedFormat('d M Y') }}</div>
+                                        <div class="mono-code text-ink-700/40">{{ substr($b->start_time, 0, 5) }} — {{ substr($b->end_time, 0, 5) }}</div>
                                     </td>
-                                    <td><x-badge :status="$r['status']" /></td>
-                                    <td class="!pr-5"></td>
+                                    <td><x-badge :status="$b->status" /></td>
+                                    <td class="text-right !pr-5">
+                                        <a href="{{ route('admin.requests.show', $b) }}" class="btn-ghost btn-sm">Lihat</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -270,51 +264,39 @@
 
             {{-- Body --}}
             <ul class="p-5 space-y-5 flex-1">
-                <li class="flex gap-3">
-                    <div class="w-1.5 mt-1.5 shrink-0">
-                        <span class="block w-1.5 h-1.5 rounded-full bg-mark-500"></span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm text-ink-900">
-                            <span class="font-semibold">Tim Alpha</span> mengajukan permintaan baru
-                        </p>
-                        <p class="text-xs text-ink-700/50 mono-code mt-0.5">LAB-0042 · 14 menit lalu</p>
-                    </div>
-                </li>
-                <li class="flex gap-3">
-                    <div class="w-1.5 mt-1.5 shrink-0">
-                        <span class="block w-1.5 h-1.5 rounded-full bg-status-approved"></span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm text-ink-900">
-                            Anda menyetujui <span class="mono-data">LAB-0040</span>
-                        </p>
-                        <p class="text-xs text-ink-700/50 mono-code mt-0.5">2 jam lalu</p>
-                    </div>
-                </li>
-                <li class="flex gap-3">
-                    <div class="w-1.5 mt-1.5 shrink-0">
-                        <span class="block w-1.5 h-1.5 rounded-full bg-ink-700/30"></span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm text-ink-900">
-                            <span class="font-semibold">PC-07</span> ditandai untuk pemeliharaan
-                        </p>
-                        <p class="text-xs text-ink-700/50 mono-code mt-0.5">Kemarin · 16:42</p>
-                    </div>
-                </li>
-                <li class="flex gap-3">
-                    <div class="w-1.5 mt-1.5 shrink-0">
-                        <span class="block w-1.5 h-1.5 rounded-full bg-status-rejected"></span>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm text-ink-900">
-                            Anda menolak <span class="mono-data">LAB-0038</span>
-                        </p>
-                        <p class="text-xs text-ink-700/50 mt-0.5">"Bentrok dengan slot praktikum"</p>
-                        <p class="text-xs text-ink-700/50 mono-code mt-0.5">2 hari lalu</p>
-                    </div>
-                </li>
+                @forelse ($recentActivity as $b)
+                    @php
+                        $dotColor = match ($b->status) {
+                            'approved'  => 'bg-status-approved',
+                            'rejected'  => 'bg-status-rejected',
+                            'completed' => 'bg-status-completed',
+                            default     => 'bg-ink-700/30',
+                        };
+                        $verb = match ($b->status) {
+                            'approved'  => 'menyetujui',
+                            'rejected'  => 'menolak',
+                            'completed' => 'menandai selesai',
+                            default     => 'memproses',
+                        };
+                    @endphp
+                    <li class="flex gap-3">
+                        <div class="w-1.5 mt-1.5 shrink-0">
+                            <span class="block w-1.5 h-1.5 rounded-full {{ $dotColor }}"></span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-ink-900">
+                                {{ $b->reviewer?->name ?? 'Admin' }} {{ $verb }}
+                                <a href="{{ route('admin.requests.show', $b) }}" class="mono-data text-ink-900 hover:underline">{{ $b->booking_code }}</a>
+                            </p>
+                            @if ($b->status === 'rejected' && $b->admin_notes)
+                                <p class="text-xs text-ink-700/50 mt-0.5">"{{ \Illuminate\Support\Str::limit($b->admin_notes, 80) }}"</p>
+                            @endif
+                            <p class="text-xs text-ink-700/50 mono-code mt-0.5">{{ optional($b->reviewed_at)->diffForHumans() }}</p>
+                        </div>
+                    </li>
+                @empty
+                    <li class="text-sm text-ink-700/50">Belum ada aktivitas.</li>
+                @endforelse
             </ul>
 
             {{-- Footer strip --}}
@@ -329,20 +311,12 @@
     </div>
 
     {{-- Computer status overview --}}
-    <x-section label="Status Komputer" title="9 Unit · Lab 401" class="mt-12 sm:mt-16">
+    <x-section label="Status Komputer" title="{{ $stats['computers_total'] }} Unit · Lab 401" class="mt-12 sm:mt-16">
         <x-slot:actions>
             <a href="{{ route('admin.computers.index') }}" class="btn-ghost btn-sm">Kelola</a>
         </x-slot:actions>
 
-        @php
-            $dummyComputers = collect(range(1, 9))->map(fn($n) => (object) [
-                'id'     => $n,
-                'label'  => 'PC-' . str_pad($n, 2, '0', STR_PAD_LEFT),
-                'status' => $n === 7 ? 'maintenance' : 'online',
-            ]);
-        @endphp
-
-        <x-computer-grid :computers="$dummyComputers" />
+        <x-computer-grid :computers="$computers" />
     </x-section>
 
 </x-app-layout>
