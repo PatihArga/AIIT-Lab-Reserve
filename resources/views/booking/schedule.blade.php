@@ -233,11 +233,92 @@
             {{-- ── § Pilih Unit Komputer (hidden when type = room_only) ── --}}
             <div x-show="selected !== 'room_only'" x-transition>
                 <x-section label="Pilih Unit Komputer">
-                    <p class="text-sm text-ink-700/60 mb-4">
-                        Pilih unit komputer yang ingin Anda gunakan. Unit yang diarsir sedang dalam pemeliharaan.
-                    </p>
-                    <x-computer-grid :computers="$computers" :selectable="true" name="computers" :selected="$draft['computers'] ?? []" />
-                    <p class="form-hint mt-3">Pilih minimal 1 unit. Anda dapat memilih hingga semua unit yang tersedia.</p>
+
+                    {{-- Status banner driven by pcLoadingState --}}
+                    <div class="mb-4 min-h-[20px]">
+                        <template x-if="pcLoadingState === 'idle'">
+                            <p class="text-sm text-ink-700/60">
+                                Pilih tanggal &amp; waktu di atas untuk melihat ketersediaan unit pada slot tersebut.
+                            </p>
+                        </template>
+                        <template x-if="pcLoadingState === 'loading'">
+                            <p class="text-sm text-ink-700/60 flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8"/></svg>
+                                Memuat ketersediaan unit untuk slot ini…
+                            </p>
+                        </template>
+                        <template x-if="pcLoadingState === 'loaded'">
+                            <p class="text-sm text-ink-700/60">
+                                Pilih unit <span class="font-semibold text-emerald-600">Tersedia</span>.
+                                Unit <span class="font-semibold text-amber-600">Terpakai</span> sudah dipesan pada slot ini.
+                            </p>
+                        </template>
+                        <template x-if="pcLoadingState === 'error'">
+                            <p class="text-sm text-red-600">
+                                Gagal memuat ketersediaan unit. Coba ubah waktu untuk mencoba lagi.
+                            </p>
+                        </template>
+                    </div>
+
+                    {{-- Per-PC dynamic grid --}}
+                    <div class="grid grid-cols-3 gap-3">
+                        @foreach ($computers as $computer)
+                            @php
+                                $hwDisabled = ($computer->status ?? 'online') !== 'online';
+                                $isSelected = in_array($computer->id, $draft['computers'] ?? []);
+                                $hwStatusLabel = match($computer->status ?? 'online') {
+                                    'online'      => 'Tersedia',
+                                    'maintenance' => 'Pemeliharaan',
+                                    'offline'     => 'Nonaktif',
+                                    default       => 'Tersedia',
+                                };
+                            @endphp
+
+                            <label class="relative flex flex-col items-center justify-center gap-1 aspect-square rounded-md
+                                          border border-rule-strong transition-all
+                                          @if (! $hwDisabled) hover:border-ink-500 has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/60 has-[:checked]:shadow-subtle cursor-pointer @else bg-ink-50/40 opacity-60 cursor-not-allowed @endif"
+                                   :class="{
+                                       'opacity-50 cursor-not-allowed pointer-events-none': getPcState({{ $computer->id }}) && !getPcState({{ $computer->id }}).available,
+                                       'ring-1 ring-emerald-300': getPcState({{ $computer->id }}) && getPcState({{ $computer->id }}).available,
+                                   }">
+
+                                <input type="checkbox" name="computers[]" value="{{ $computer->id }}"
+                                       {{ $isSelected ? 'checked' : '' }}
+                                       @if ($hwDisabled) disabled @endif
+                                       :disabled="(getPcState({{ $computer->id }}) && !getPcState({{ $computer->id }}).available) || {{ $hwDisabled ? 'true' : 'false' }}"
+                                       class="sr-only peer">
+
+                                {{-- Checkbox indicator --}}
+                                <span class="absolute top-2 right-2 w-4 h-4 rounded border border-rule-strong
+                                             peer-checked:bg-mark-500 peer-checked:border-mark-500
+                                             flex items-center justify-center transition-all">
+                                    <svg class="w-3 h-3 text-ink-900 opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </span>
+
+                                {{-- Slot status badge (top-left) — shown only when slot data is loaded --}}
+                                <template x-if="getPcState({{ $computer->id }})">
+                                    <span class="absolute top-2 left-2 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                          :class="getPcState({{ $computer->id }}).available
+                                              ? 'bg-emerald-100 text-emerald-700'
+                                              : (getPcState({{ $computer->id }}).status !== 'online' ? 'bg-ink-100 text-ink-700/60' : 'bg-amber-100 text-amber-700')">
+                                        <span x-text="getPcState({{ $computer->id }}).available
+                                              ? 'Tersedia'
+                                              : (getPcState({{ $computer->id }}).status !== 'online' ? 'Perawatan' : 'Terpakai')"></span>
+                                    </span>
+                                </template>
+
+                                <svg class="w-7 h-7 text-ink-700/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="font-mono text-sm font-semibold text-ink-900">{{ $computer->label }}</span>
+                                <span class="text-[0.6rem] uppercase tracking-label font-semibold text-ink-700/50">{{ $hwStatusLabel }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <p class="form-hint mt-3">Pilih minimal 1 unit. Unit yang sedang Terpakai pada slot ini akan dinonaktifkan otomatis.</p>
                 </x-section>
             </div>
 
@@ -287,7 +368,8 @@ function bookingForm() {
     const draftDate = draft && draft.date ? draft.date : '';
     const draftYear = draftDate ? parseInt(draftDate.slice(0, 4), 10) : today.getFullYear();
     const draftMonth = draftDate ? parseInt(draftDate.slice(5, 7), 10) - 1 : today.getMonth();
-    const checkUrl = @json(route('api.availability.check'));
+    const checkUrl       = @json(route('api.availability.check'));
+    const pcAvailUrl     = @json(route('api.availability.computers'));
 
     return {
         selected: draft && draft.type ? draft.type : '',
@@ -303,18 +385,77 @@ function bookingForm() {
         availMessage: '',
         availTimer: null,
 
+        // Per-PC availability for the selected slot (driven by /api/computers/available)
+        pcAvailability: [],
+        pcLoadingState: 'idle',  // idle | loading | loaded | error
+        pcTimer: null,
+
         init() {
             this.build();
             // Watch the fields that affect availability
             ['selected', 'isoDate', 'startTime', 'endTime', 'roomSharing'].forEach(prop => {
                 this.$watch(prop, () => this.scheduleAvailabilityCheck());
             });
+            // Watch the time-only fields → trigger per-PC availability load
+            ['isoDate', 'startTime', 'endTime'].forEach(prop => {
+                this.$watch(prop, () => this.schedulePcAvailabilityLoad());
+            });
             // Watch computer checkboxes by listening to their change events
             this.$el.querySelectorAll('input[name="computers[]"]').forEach(cb => {
                 cb.addEventListener('change', () => this.scheduleAvailabilityCheck());
             });
             // Initial check if we have a hydrated draft
-            this.$nextTick(() => this.scheduleAvailabilityCheck());
+            this.$nextTick(() => {
+                this.scheduleAvailabilityCheck();
+                this.schedulePcAvailabilityLoad();
+            });
+        },
+
+        schedulePcAvailabilityLoad() {
+            if (!this.isoDate || !this.startTime || !this.endTime) {
+                this.pcAvailability = [];
+                this.pcLoadingState = 'idle';
+                return;
+            }
+            if (this.startTime >= this.endTime) return;
+            if (this.pcTimer) clearTimeout(this.pcTimer);
+            this.pcTimer = setTimeout(() => this.loadPcAvailability(), 300);
+        },
+
+        async loadPcAvailability() {
+            this.pcLoadingState = 'loading';
+            const params = new URLSearchParams({
+                date: this.isoDate,
+                start_time: this.startTime,
+                end_time: this.endTime,
+            });
+            try {
+                const res = await fetch(pcAvailUrl + '?' + params.toString(), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                if (!res.ok) throw new Error('http ' + res.status);
+                const data = await res.json();
+                this.pcAvailability = data.computers;
+                this.pcLoadingState = 'loaded';
+                // Deselect any currently-checked PCs that are no longer available
+                this.$nextTick(() => {
+                    let changed = false;
+                    this.$el.querySelectorAll('input[name="computers[]"]:checked').forEach(cb => {
+                        const pcId = parseInt(cb.value, 10);
+                        const pc = this.pcAvailability.find(p => p.id === pcId);
+                        if (pc && !pc.available) { cb.checked = false; changed = true; }
+                    });
+                    if (changed) this.scheduleAvailabilityCheck();
+                });
+            } catch (e) {
+                this.pcLoadingState = 'error';
+            }
+        },
+
+        getPcState(pcId) {
+            if (this.pcLoadingState !== 'loaded' || !this.pcAvailability.length) return null;
+            return this.pcAvailability.find(p => p.id === pcId) || null;
         },
 
         get canCheck() {

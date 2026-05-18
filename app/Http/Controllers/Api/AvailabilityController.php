@@ -70,10 +70,16 @@ class AvailabilityController extends Controller
             ->with('computers')
             ->get();
 
-        // If any full_room is active in window → ALL computers are unavailable
-        $hasFullRoom = $overlapping->where('booking_type', 'full_room')->isNotEmpty();
+        // If any full_room OR exclusive room_only is active in the window → ALL computers are unavailable
+        $hasFullRoom      = $overlapping->where('booking_type', 'full_room')->isNotEmpty();
+        $hasExclusiveRoom = $overlapping
+            ->where('booking_type', 'room_only')
+            ->where('room_sharing', 'exclusive')
+            ->isNotEmpty();
 
-        $bookedIds = $hasFullRoom
+        $allBlocked = $hasFullRoom || $hasExclusiveRoom;
+
+        $bookedIds = $allBlocked
             ? Computer::pluck('id')->toArray()
             : $overlapping
                 ->where('booking_type', 'computers_only')

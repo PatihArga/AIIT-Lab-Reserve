@@ -37,6 +37,8 @@
 .cal-slot:hover { border-color: #DBEAFE; background: #fff; }
 .cal-slot:active { transform: scale(0.97); }
 .cal-slot.slot-booked { background: #FFFBEB; border-color: #FDE68A; color: #D9A300; cursor: not-allowed; }
+.cal-slot.slot-mine { background: #EFF6FF; border-color: #DBEAFE; color: #3B82F6; }
+.cal-slot.slot-mine:hover { border-color: #93C5FD; background: #fff; }
 .interval-btn { padding: 4px 10px; font-size: 10.5px; font-weight: 600; font-family: 'Sora', sans-serif; border: none; background: transparent; color: rgba(10,26,71,.4); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
 .interval-btn.active { background: #0A1A47; color: #fff; }
 .interval-btn:hover:not(.active) { background: #FAFAF7; color: #0A1A47; }
@@ -215,7 +217,7 @@
         <div class="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-rule">
             <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-ink-900 tracking-tight" id="cal-month-label">{{ $monthNamesId[now()->month - 1] }} {{ now()->year }}</span>
-                <span class="bg-ink-50 text-ink-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">{{ $calendarEvents->count() }} reservasi</span>
+                <span class="bg-ink-50 text-ink-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full" id="cal-event-count">{{ $userEvents->count() }} reservasi</span>
             </div>
             <div class="flex items-center gap-1">
                 <button onclick="calNav(-1)" class="cal-nav-btn" title="Bulan sebelumnya">
@@ -445,7 +447,8 @@
 <script>
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day }});
-const RESERVATIONS = @json($calendarEvents);
+const FULL_BLOCKS  = @json($fullBlocks);   // day -> [fully-blocked hours, lab-wide]
+const USER_EVENTS  = @json($userEvents);   // day -> [hours this user has booked]
 
 let modalDay = null, modalSlot = null, selectedPcIds = [];
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
@@ -455,10 +458,10 @@ let calYear = {{ now()->year }}, calMonth = {{ now()->month - 1 }}, selectedDay 
 
 function renderCalendar() {
     document.getElementById('cal-month-label').textContent = MONTHS_ID[calMonth] + ' ' + calYear;
-    // RESERVATIONS is keyed by day-of-month for the CURRENT real month.
+    // FULL_BLOCKS / USER_EVENTS are keyed by day-of-month for the CURRENT real month.
     // For other months we don't have data yet, so the dot count is empty there.
     const onCurrentMonth = calYear === TODAY.getFullYear() && calMonth === TODAY.getMonth();
-    const resvCount = onCurrentMonth ? Object.keys(RESERVATIONS).length : 0;
+    const resvCount = onCurrentMonth ? Object.keys(USER_EVENTS).length : 0;
     document.getElementById('cal-event-count').textContent = resvCount + ' reservasi';
     const firstDay    = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -476,7 +479,7 @@ function renderCalendar() {
         el.className = 'cal-day';
         el.textContent = d;
         const isToday  = calYear === TODAY.getFullYear() && calMonth === TODAY.getMonth() && d === TODAY.getDate();
-        const hasResv  = onCurrentMonth && RESERVATIONS[d];
+        const hasResv  = onCurrentMonth && USER_EVENTS[d] && USER_EVENTS[d].length > 0;
         const isSunday = new Date(calYear, calMonth, d).getDay() === 0;
         if (isToday)  el.classList.add('day-today');
         if (hasResv)  el.classList.add('day-has-event');
@@ -538,16 +541,21 @@ function renderTimeSlots(day) {
     const grid  = document.getElementById('cal-slots-grid');
     grid.innerHTML = '';
     slots.forEach((slot, idx) => {
-        const booked = RESERVATIONS[day] && RESERVATIONS[day].includes(Math.floor(slot.startHour));
+        const hourKey       = Math.floor(slot.startHour);
+        const fullyBlocked  = FULL_BLOCKS[day] && FULL_BLOCKS[day].includes(hourKey);
+        const hasUserEvent  = USER_EVENTS[day] && USER_EVENTS[day].includes(hourKey);
         const el = document.createElement('div');
-        el.className = 'cal-slot' + (booked ? ' slot-booked' : '');
+        el.className = 'cal-slot'
+            + (fullyBlocked ? ' slot-booked' : '')
+            + (!fullyBlocked && hasUserEvent ? ' slot-mine' : '');
         el.style.opacity = '0';
         el.style.animation = 'slotFadeIn .28s ' + (idx * 30) + 'ms forwards';
         const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+        const statusLabel = fullyBlocked ? 'Penuh' : (hasUserEvent ? 'Saya' : 'Tersedia');
         el.innerHTML = '<span style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:inherit">' + fmt(slot.startMin) + '</span>'
                      + '<span style="font-size:9.5px;color:rgba(10,26,71,.38);font-family:\'Sora\',sans-serif;font-weight:500">s/d ' + fmt(slot.endMin) + '</span>'
-                     + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + (booked ? 'Terpesan' : 'Tersedia') + '</span>';
-        if (!booked) el.addEventListener('click', () => openSlotModal(day, slot));
+                     + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + statusLabel + '</span>';
+        if (!fullyBlocked) el.addEventListener('click', () => openSlotModal(day, slot));
         grid.appendChild(el);
     });
 }

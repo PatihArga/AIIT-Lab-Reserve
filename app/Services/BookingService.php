@@ -61,6 +61,13 @@ class BookingService
             if ((clone $base)->where('booking_type', 'full_room')->exists()) {
                 return true;
             }
+            // An exclusive room_only booking takes the whole space — no PC use allowed inside it.
+            if ((clone $base)
+                    ->where('booking_type', 'room_only')
+                    ->where('room_sharing', 'exclusive')
+                    ->exists()) {
+                return true;
+            }
             if (empty($computerIds)) {
                 return false;
             }
@@ -76,7 +83,14 @@ class BookingService
             }
 
             if ($roomSharing === 'exclusive') {
-                return (clone $base)->where('booking_type', 'room_only')->exists();
+                if ((clone $base)->where('booking_type', 'room_only')->exists()) {
+                    return true;
+                }
+                // Can't claim exclusive use of the room if computers are already booked in it.
+                if ((clone $base)->where('booking_type', 'computers_only')->exists()) {
+                    return true;
+                }
+                return false;
             }
 
             if ($roomSharing === 'shared') {
