@@ -41,15 +41,16 @@ class BookingService
         ?string $roomSharing = null,
         ?int   $excludeBookingId = null,
     ): bool {
-        $buffer    = (int) LabSetting::get('buffer_minutes', 15);
-        $buffStart = Carbon::parse($startTime)->subMinutes($buffer)->format('H:i:s');
-        $buffEnd   = Carbon::parse($endTime)->addMinutes($buffer)->format('H:i:s');
+        $buffer  = (int) LabSetting::get('buffer_minutes', 15);
+        $buffEnd = Carbon::parse($endTime)->addMinutes($buffer)->format('H:i:s');
 
         $base = Booking::query()
             ->where('date', $date)
             ->whereIn('status', self::ACTIVE_STATUSES)
             ->where('start_time', '<', $buffEnd)
-            ->where('end_time',   '>', $buffStart)
+            // Strict: existing must end AFTER the new booking's actual start (no buffer here),
+            // so adjacent bookings (existing.end == new.start) are allowed.
+            ->where('end_time',   '>', $startTime)
             ->when($excludeBookingId, fn($q) => $q->where('id', '!=', $excludeBookingId))
             ->lockForUpdate();
 

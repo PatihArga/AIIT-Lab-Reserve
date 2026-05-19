@@ -57,16 +57,17 @@ class AvailabilityController extends Controller
             'end_time'   => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
 
-        $buffer    = (int) LabSetting::get('buffer_minutes', 15);
-        $buffStart = Carbon::parse($validated['start_time'])->subMinutes($buffer)->format('H:i:s');
-        $buffEnd   = Carbon::parse($validated['end_time'])->addMinutes($buffer)->format('H:i:s');
+        $buffer  = (int) LabSetting::get('buffer_minutes', 15);
+        $buffEnd = Carbon::parse($validated['end_time'])->addMinutes($buffer)->format('H:i:s');
 
-        // Bookings overlapping the requested window
+        // Bookings overlapping the requested window.
+        // Strict on end_time side so existing bookings ending exactly at the new
+        // booking's start_time (adjacent, no overlap) are NOT treated as conflicts.
         $overlapping = Booking::query()
             ->where('date', $validated['date'])
             ->whereIn('status', ['submitted', 'under_review', 'approved'])
             ->where('start_time', '<', $buffEnd)
-            ->where('end_time',   '>', $buffStart)
+            ->where('end_time',   '>', $validated['start_time'])
             ->with('computers')
             ->get();
 
