@@ -62,6 +62,8 @@ class AdminRequestController extends Controller
         }
 
         // Live conflict check — must run inside transaction because checkConflict uses lockForUpdate.
+        // approvedOnly:true → only flag conflicts against APPROVED bookings, since multiple
+        // pending requests for the same slot are intentionally allowed now (admin picks the winner).
         $hasConflict = DB::transaction(fn () => $this->bookings->checkConflict(
             date:             $booking->date->format('Y-m-d'),
             startTime:        substr((string) $booking->start_time, 0, 5),
@@ -70,6 +72,7 @@ class AdminRequestController extends Controller
             computerIds:      $booking->computers->pluck('id')->toArray(),
             roomSharing:      $booking->room_sharing,
             excludeBookingId: $booking->id,
+            approvedOnly:     true,
         ));
 
         return view('admin.requests.show', compact('booking', 'hasConflict'));
@@ -126,6 +129,10 @@ class AdminRequestController extends Controller
                     'ip_address'     => request()->ip(),
                     'user_agent'     => request()->userAgent(),
                 ]);
+
+                // Auto-reject pending requests that conflict with this newly-approved booking.
+                // MUST run inside this transaction so approve + auto-reject are atomic.
+                $this->bookings->autoRejectConflicting($booking);
             });
         } catch (BookingConflictException $e) {
             return back()->with('error', $e->getMessage());

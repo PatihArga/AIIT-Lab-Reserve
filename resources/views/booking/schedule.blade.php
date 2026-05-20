@@ -250,7 +250,8 @@
                         <template x-if="pcLoadingState === 'loaded'">
                             <p class="text-sm text-ink-700/60">
                                 Pilih unit <span class="font-semibold text-emerald-600">Tersedia</span>.
-                                Unit <span class="font-semibold text-amber-600">Terpakai</span> sudah dipesan pada slot ini.
+                                Unit <span class="font-semibold text-amber-600">Menunggu</span> masih bisa dipilih (ada permintaan tinjau).
+                                Unit <span class="font-semibold text-red-600">Terpakai</span> sudah disetujui untuk pengguna lain.
                             </p>
                         </template>
                         <template x-if="pcLoadingState === 'error'">
@@ -297,15 +298,16 @@
                                     </svg>
                                 </span>
 
-                                {{-- Slot status badge (top-left) — shown only when slot data is loaded --}}
+                                {{-- Slot status badge (top-left) — shown only when slot data is loaded.
+                                     Four states: Tersedia (green) | Menunggu (amber, pending) | Perawatan (grey) | Terpakai (red) --}}
                                 <template x-if="getPcState({{ $computer->id }})">
                                     <span class="absolute top-2 left-2 text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                                          :class="getPcState({{ $computer->id }}).available
-                                              ? 'bg-emerald-100 text-emerald-700'
-                                              : (getPcState({{ $computer->id }}).status !== 'online' ? 'bg-ink-100 text-ink-700/60' : 'bg-amber-100 text-amber-700')">
-                                        <span x-text="getPcState({{ $computer->id }}).available
-                                              ? 'Tersedia'
-                                              : (getPcState({{ $computer->id }}).status !== 'online' ? 'Perawatan' : 'Terpakai')"></span>
+                                          :class="!getPcState({{ $computer->id }}).available
+                                              ? (getPcState({{ $computer->id }}).status !== 'online' ? 'bg-ink-100 text-ink-700/60' : 'bg-red-100 text-red-700')
+                                              : (getPcState({{ $computer->id }}).pending ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700')">
+                                        <span x-text="!getPcState({{ $computer->id }}).available
+                                              ? (getPcState({{ $computer->id }}).status !== 'online' ? 'Perawatan' : 'Terpakai')
+                                              : (getPcState({{ $computer->id }}).pending ? 'Menunggu' : 'Tersedia')"></span>
                                     </span>
                                 </template>
 
@@ -331,6 +333,9 @@
                     </template>
                     <template x-if="availStatus === 'available'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </template>
+                    <template x-if="availStatus === 'pending'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="12" y1="8"  x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
                     </template>
                     <template x-if="availStatus === 'conflict' || availStatus === 'error'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><line x1="12" y1="8"  x2="12" y2="13" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" stroke-linecap="round"/></svg>
@@ -381,7 +386,7 @@ function bookingForm() {
         month: draftMonth,
         cells: [],
 
-        availStatus: 'idle',     // idle | loading | available | conflict | error
+        availStatus: 'idle',     // idle | loading | available | pending | conflict | error
         availMessage: '',
         availTimer: null,
 
@@ -469,6 +474,7 @@ function bookingForm() {
             return {
                 'border-rule bg-white text-ink-700/60': this.availStatus === 'loading',
                 'border-emerald-200 bg-emerald-50 text-emerald-700': this.availStatus === 'available',
+                'border-amber-200 bg-amber-50 text-amber-700': this.availStatus === 'pending',
                 'border-red-200 bg-red-50 text-red-700': this.availStatus === 'conflict' || this.availStatus === 'error',
             };
         },
@@ -509,7 +515,11 @@ function bookingForm() {
                 });
                 if (!res.ok) throw new Error('http ' + res.status);
                 const data = await res.json();
-                this.availStatus  = data.available ? 'available' : 'conflict';
+                // pending = another user has an unreviewed request for this slot.
+                // Submission is still allowed; admin will pick between competing requests.
+                this.availStatus = !data.available
+                    ? 'conflict'
+                    : (data.pending ? 'pending' : 'available');
                 this.availMessage = data.message;
             } catch (e) {
                 this.availStatus = 'error';

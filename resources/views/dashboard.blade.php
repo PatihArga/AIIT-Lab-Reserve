@@ -36,7 +36,10 @@
 .cal-slot { padding: 7px 8px; border-radius: 6px; border: 1px solid rgba(15,36,96,.08); background: #FAFAF7; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: background .15s, border-color .15s, color .15s, transform .1s; overflow: hidden; }
 .cal-slot:hover { border-color: #DBEAFE; background: #fff; }
 .cal-slot:active { transform: scale(0.97); }
-.cal-slot.slot-booked { background: #FFFBEB; border-color: #FDE68A; color: #D9A300; cursor: not-allowed; }
+.cal-slot.slot-booked { background: #FEF2F2; border-color: #FCA5A5; color: #B91C1C; cursor: not-allowed; }
+.cal-slot.slot-booked:hover { border-color: #FCA5A5; background: #FEF2F2; }
+.cal-slot.slot-pending { background: #FFFBEB; border-color: #FDE68A; color: #D97706; }
+.cal-slot.slot-pending:hover { border-color: #F59E0B; background: #fff; }
 .cal-slot.slot-mine { background: #EFF6FF; border-color: #DBEAFE; color: #3B82F6; }
 .cal-slot.slot-mine:hover { border-color: #93C5FD; background: #fff; }
 .interval-btn { padding: 4px 10px; font-size: 10.5px; font-weight: 600; font-family: 'Sora', sans-serif; border: none; background: transparent; color: rgba(10,26,71,.4); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
@@ -447,8 +450,9 @@
 <script>
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day }});
-const FULL_BLOCKS  = @json($fullBlocks);   // day -> [fully-blocked hours, lab-wide]
-const USER_EVENTS  = @json($userEvents);   // day -> [hours this user has booked]
+const FULL_BLOCKS    = @json($fullBlocks);     // day -> [approved hard-block hours, lab-wide]
+const PENDING_BLOCKS = @json($pendingBlocks);  // day -> [pending/under_review soft-block hours]
+const USER_EVENTS    = @json($userEvents);     // day -> [hours this user has booked]
 
 let modalDay = null, modalSlot = null, selectedPcIds = [];
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
@@ -541,21 +545,30 @@ function renderTimeSlots(day) {
     const grid  = document.getElementById('cal-slots-grid');
     grid.innerHTML = '';
     slots.forEach((slot, idx) => {
-        const hourKey       = Math.floor(slot.startHour);
-        const fullyBlocked  = FULL_BLOCKS[day] && FULL_BLOCKS[day].includes(hourKey);
-        const hasUserEvent  = USER_EVENTS[day] && USER_EVENTS[day].includes(hourKey);
+        const hourKey      = Math.floor(slot.startHour);
+        // Priority: hard-block > own booking > pending soft-block > free.
+        // Own pending booking shows as "Saya" (blue), not "Menunggu" (yellow).
+        const hardBlocked  = FULL_BLOCKS[day]    && FULL_BLOCKS[day].includes(hourKey);
+        const isMine       = USER_EVENTS[day]    && USER_EVENTS[day].includes(hourKey);
+        const softPending  = !isMine && PENDING_BLOCKS[day] && PENDING_BLOCKS[day].includes(hourKey);
+
         const el = document.createElement('div');
         el.className = 'cal-slot'
-            + (fullyBlocked ? ' slot-booked' : '')
-            + (!fullyBlocked && hasUserEvent ? ' slot-mine' : '');
+            + (hardBlocked              ? ' slot-booked'  : '')
+            + (!hardBlocked && isMine   ? ' slot-mine'    : '')
+            + (!hardBlocked && softPending ? ' slot-pending' : '');
         el.style.opacity = '0';
         el.style.animation = 'slotFadeIn .28s ' + (idx * 30) + 'ms forwards';
         const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-        const statusLabel = fullyBlocked ? 'Penuh' : (hasUserEvent ? 'Saya' : 'Tersedia');
+        const statusLabel = hardBlocked ? 'Penuh'
+            : isMine      ? 'Saya'
+            : softPending ? 'Menunggu'
+            : 'Tersedia';
         el.innerHTML = '<span style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:inherit">' + fmt(slot.startMin) + '</span>'
                      + '<span style="font-size:9.5px;color:rgba(10,26,71,.38);font-family:\'Sora\',sans-serif;font-weight:500">s/d ' + fmt(slot.endMin) + '</span>'
                      + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + statusLabel + '</span>';
-        if (!fullyBlocked) el.addEventListener('click', () => openSlotModal(day, slot));
+        // Hard-blocked slots are non-clickable. Soft-pending and free slots open the modal.
+        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine }));
         grid.appendChild(el);
     });
 }
@@ -591,8 +604,9 @@ function selectSharing(val) {
     document.querySelector('.sharing-btn[data-val="' + val + '"]').classList.add('active');
 }
 
-async function openSlotModal(day, slot) {
+async function openSlotModal(day, slot, opts) {
     modalDay = day; modalSlot = slot; selectedPcIds = [];
+    const softPending = !!(opts && opts.softPending);
 
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
@@ -613,6 +627,23 @@ async function openSlotModal(day, slot) {
     computers.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px 0;color:rgba(10,26,71,.4);font-size:12px;">Memuat ketersediaan…</div>';
     document.getElementById('modal-summary').innerHTML = '';
     document.getElementById('modal-reserve-btn').disabled = true;
+
+    // Show / hide the soft-pending warning banner
+    let pendingBanner = document.getElementById('modal-pending-banner');
+    if (softPending) {
+        if (!pendingBanner) {
+            pendingBanner = document.createElement('div');
+            pendingBanner.id = 'modal-pending-banner';
+            pendingBanner.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:14px;color:#92400E;font-size:11.5px;line-height:1.45;';
+            pendingBanner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span><b>Ada permintaan yang sedang ditinjau</b> untuk slot ini oleh pengguna lain. Anda tetap dapat mengajukan permintaan — admin akan memilih salah satu.</span>';
+            const section = document.getElementById('modal-computers-section');
+            section.parentNode.insertBefore(pendingBanner, section);
+        }
+        pendingBanner.style.display = 'flex';
+    } else if (pendingBanner) {
+        pendingBanner.style.display = 'none';
+    }
+
     document.getElementById('slot-modal-overlay').classList.add('open');
 
     const mm = String(calMonth + 1).padStart(2, '0');

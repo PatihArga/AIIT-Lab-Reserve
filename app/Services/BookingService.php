@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Exceptions\BookingConflictException;
+use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\BookingLogbook;
 use App\Models\LabSetting;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class BookingService
@@ -31,6 +33,11 @@ class BookingService
      * @param  array        $computerIds       only used when bookingType = computers_only
      * @param  string|null  $roomSharing       exclusive | shared (only for room_only)
      * @param  int|null     $excludeBookingId  exclude this booking when re-checking
+     * @param  bool         $approvedOnly      when true, only 'approved' bookings count as conflicts.
+     *                                          Default false → pending submissions also count, which is
+     *                                          required for createBooking() to prevent double-submission
+     *                                          of incompatible types (full_room, exclusive room_only).
+     *                                          Read-only display APIs should pass true.
      */
     public function checkConflict(
         string $date,
@@ -40,13 +47,16 @@ class BookingService
         array  $computerIds = [],
         ?string $roomSharing = null,
         ?int   $excludeBookingId = null,
+        bool   $approvedOnly = false,
     ): bool {
+        $statuses = $approvedOnly ? ['approved'] : self::ACTIVE_STATUSES;
+
         $buffer  = (int) LabSetting::get('buffer_minutes', 15);
         $buffEnd = Carbon::parse($endTime)->addMinutes($buffer)->format('H:i:s');
 
         $base = Booking::query()
             ->where('date', $date)
-            ->whereIn('status', self::ACTIVE_STATUSES)
+            ->whereIn('status', $statuses)
             ->where('start_time', '<', $buffEnd)
             // Strict: existing must end AFTER the new booking's actual start (no buffer here),
             // so adjacent bookings (existing.end == new.start) are allowed.
@@ -172,5 +182,84 @@ class BookingService
         $last = Booking::lockForUpdate()->max('booking_code');
         $next = $last ? ((int) substr($last, 4)) + 1 : 1;
         return 'LAB-' . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Auto-reject pending bookings that conflict with the just-approved one.
+     * Called inside the same transaction as the approve(), so partial failures
+     * cannot leave the system inconsistent.
+     *
+     * Uses a single overlap query + in-PHP type compatibility check to avoid
+     * running lockForUpdate() in a loop (which could deadlock under load).
+     */
+    public function autoRejectConflicting(Booking $approved): void
+    {
+        $conflicting = Booking::where('id', '!=', $approved->id)
+            ->whereIn('status', ['submitted', 'under_review'])
+            ->where('date', $approved->date->format('Y-m-d'))
+            ->where('start_time', '<', (string) $approved->end_time)
+            ->where('end_time',   '>', (string) $approved->start_time)
+            ->with('computers:id')
+            ->get();
+
+        foreach ($conflicting as $pending) {
+            if (! $this->typesConflict($approved, $pending)) {
+                continue;
+            }
+
+            $oldStatus = $pending->status;
+
+            $pending->update([
+                'status'      => 'rejected',
+                'admin_notes' => 'Otomatis ditolak: reservasi '
+                               . $approved->booking_code
+                               . ' telah disetujui untuk slot yang sama.',
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id'        => Auth::id(),
+                'action'         => 'booking.auto_rejected',
+                'auditable_type' => Booking::class,
+                'auditable_id'   => $pending->id,
+                'old_values'     => ['status' => $oldStatus],
+                'new_values'     => ['status' => 'rejected'],
+                'ip_address'     => request()->ip(),
+                'user_agent'     => request()->userAgent(),
+            ]);
+        }
+    }
+
+    /**
+     * Pure-PHP type compatibility check between two overlapping bookings.
+     * Returns true if they cannot coexist regardless of timing.
+     */
+    private function typesConflict(Booking $a, Booking $b): bool
+    {
+        // full_room conflicts with everything
+        if ($a->booking_type === 'full_room' || $b->booking_type === 'full_room') {
+            return true;
+        }
+
+        // exclusive room_only conflicts with everything
+        if ($a->booking_type === 'room_only' && $a->room_sharing === 'exclusive') {
+            return true;
+        }
+        if ($b->booking_type === 'room_only' && $b->room_sharing === 'exclusive') {
+            return true;
+        }
+
+        // computers_only vs computers_only: conflict only if PCs overlap
+        if ($a->booking_type === 'computers_only' && $b->booking_type === 'computers_only') {
+            return $a->computers->pluck('id')
+                ->intersect($b->computers->pluck('id'))
+                ->isNotEmpty();
+        }
+
+        // Remaining combos are compatible:
+        //   - room_only shared + room_only shared
+        //   - computers_only + room_only shared (room_only shared doesn't claim PCs)
+        return false;
     }
 }

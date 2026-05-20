@@ -61,58 +61,67 @@ class BookingController extends Controller
             ),
         ];
 
-        // Lab-wide bookings for the current month — drives the "fully blocked" calculation
+        // Single query for all active statuses; partition in PHP to halve DB round-trips.
         $monthBookings = Booking::with('computers:id')
             ->whereIn('status', ['submitted', 'under_review', 'approved'])
             ->whereMonth('date', now()->month)
             ->whereYear('date',  now()->year)
-            ->get(['id', 'date', 'start_time', 'end_time', 'booking_type', 'room_sharing']);
+            ->get(['id', 'date', 'start_time', 'end_time', 'booking_type', 'room_sharing', 'status']);
+
+        $approvedMonth = $monthBookings->where('status', 'approved');
+        $pendingMonth  = $monthBookings->whereIn('status', ['submitted', 'under_review']);
 
         $totalOnline = Computer::where('status', 'online')->count();
 
-        // fullBlocks: day → [hours that are truly unavailable lab-wide]
-        $fullBlocks = $monthBookings
-            ->groupBy(fn ($b) => (int) $b->date->day)
-            ->map(function ($dayBookings) use ($totalOnline) {
-                $hourRanges = $dayBookings->map(function ($b) {
-                    $start = (int) Carbon::parse($b->start_time)->hour;
-                    $end   = (int) Carbon::parse($b->end_time)->hour;
-                    return [
-                        'hours'        => range($start, max($start, $end - 1)),
-                        'booking_type' => $b->booking_type,
-                        'room_sharing' => $b->room_sharing,
-                        'computer_ids' => $b->computers->pluck('id')->toArray(),
-                    ];
+        // Closure reused for both approved (hard-block) and pending (soft-block) bookings.
+        $computeHourBlocks = function ($bookings) use ($totalOnline) {
+            return $bookings
+                ->groupBy(fn ($b) => (int) $b->date->day)
+                ->map(function ($dayBookings) use ($totalOnline) {
+                    $hourRanges = $dayBookings->map(function ($b) {
+                        $start = (int) Carbon::parse($b->start_time)->hour;
+                        $end   = (int) Carbon::parse($b->end_time)->hour;
+                        return [
+                            'hours'        => range($start, max($start, $end - 1)),
+                            'booking_type' => $b->booking_type,
+                            'room_sharing' => $b->room_sharing,
+                            'computer_ids' => $b->computers->pluck('id')->toArray(),
+                        ];
+                    });
+
+                    $allHours = $hourRanges->flatMap(fn ($r) => $r['hours'])->unique();
+                    $blockedHours = [];
+
+                    foreach ($allHours as $hour) {
+                        $hasFullRoom = $hourRanges->contains(
+                            fn ($r) => $r['booking_type'] === 'full_room' && in_array($hour, $r['hours'], true)
+                        );
+                        $hasExclusiveRoom = $hourRanges->contains(
+                            fn ($r) => $r['booking_type'] === 'room_only'
+                                    && $r['room_sharing'] === 'exclusive'
+                                    && in_array($hour, $r['hours'], true)
+                        );
+                        if ($hasFullRoom || $hasExclusiveRoom) {
+                            $blockedHours[] = $hour;
+                            continue;
+                        }
+                        $bookedPcIds = $hourRanges
+                            ->filter(fn ($r) => $r['booking_type'] === 'computers_only' && in_array($hour, $r['hours'], true))
+                            ->flatMap(fn ($r) => $r['computer_ids'])
+                            ->unique();
+                        if ($totalOnline > 0 && $bookedPcIds->count() >= $totalOnline) {
+                            $blockedHours[] = $hour;
+                        }
+                    }
+
+                    return collect($blockedHours)->unique()->sort()->values();
                 });
+        };
 
-                $allHours = $hourRanges->flatMap(fn ($r) => $r['hours'])->unique();
-                $blockedHours = [];
-
-                foreach ($allHours as $hour) {
-                    $hasFullRoom = $hourRanges->contains(
-                        fn ($r) => $r['booking_type'] === 'full_room' && in_array($hour, $r['hours'], true)
-                    );
-                    // Exclusive room_only also takes the whole space — block the slot lab-wide.
-                    $hasExclusiveRoom = $hourRanges->contains(
-                        fn ($r) => $r['booking_type'] === 'room_only'
-                                && $r['room_sharing'] === 'exclusive'
-                                && in_array($hour, $r['hours'], true)
-                    );
-                    if ($hasFullRoom || $hasExclusiveRoom) {
-                        $blockedHours[] = $hour;
-                        continue;
-                    }
-                    $bookedPcIds = $hourRanges
-                        ->filter(fn ($r) => $r['booking_type'] === 'computers_only' && in_array($hour, $r['hours'], true))
-                        ->flatMap(fn ($r) => $r['computer_ids'])
-                        ->unique();
-                    if ($totalOnline > 0 && $bookedPcIds->count() >= $totalOnline) {
-                        $blockedHours[] = $hour;
-                    }
-                }
-
-                return collect($blockedHours)->unique()->sort()->values();
-            });
+        // fullBlocks    — hours fully unavailable due to an APPROVED booking (hard, non-clickable).
+        // pendingBlocks — hours with pending requests (soft, clickable + yellow warning).
+        $fullBlocks    = $computeHourBlocks($approvedMonth);
+        $pendingBlocks = $computeHourBlocks($pendingMonth);
 
         // userEvents: day → [hours where the current user has any active booking]
         $userEvents = $user->bookings()
@@ -131,7 +140,8 @@ class BookingController extends Controller
             );
 
         return view('dashboard', compact(
-            'upcomingBookings', 'completedBookings', 'stats', 'fullBlocks', 'userEvents'
+            'upcomingBookings', 'completedBookings', 'stats',
+            'fullBlocks', 'pendingBlocks', 'userEvents'
         ));
     }
 

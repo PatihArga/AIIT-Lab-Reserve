@@ -31,20 +31,33 @@ class AvailabilityController extends Controller
             'room_sharing' => ['nullable', 'in:exclusive,shared'],
         ]);
 
+        // Hard-block check: only approved bookings count as real conflicts.
         $conflict = DB::transaction(fn () => $this->bookings->checkConflict(
-            date:        $validated['date'],
-            startTime:   $validated['start_time'],
-            endTime:     $validated['end_time'],
-            bookingType: $validated['type'],
-            computerIds: $validated['computers'] ?? [],
-            roomSharing: $validated['room_sharing'] ?? null,
+            date:         $validated['date'],
+            startTime:    $validated['start_time'],
+            endTime:      $validated['end_time'],
+            bookingType:  $validated['type'],
+            computerIds:  $validated['computers'] ?? [],
+            roomSharing:  $validated['room_sharing'] ?? null,
+            approvedOnly: true,
         ));
+
+        // Soft-pending check: another user has an unreviewed request for this slot.
+        // No buffer here — pending bookings display at their actual times.
+        $hasPending = ! $conflict && Booking::where('date', $validated['date'])
+            ->whereIn('status', ['submitted', 'under_review'])
+            ->where('start_time', '<', $validated['end_time'])
+            ->where('end_time',   '>', $validated['start_time'])
+            ->exists();
 
         return response()->json([
             'available' => ! $conflict,
+            'pending'   => $hasPending,
             'message'   => $conflict
-                ? 'Slot ini sudah terpesan atau bertabrakan dengan reservasi lain.'
-                : 'Slot tersedia.',
+                ? 'Slot ini sudah disetujui untuk pengguna lain.'
+                : ($hasPending
+                    ? 'Ada permintaan yang sedang ditinjau untuk slot ini. Anda tetap dapat mengajukan permintaan.'
+                    : 'Slot tersedia.'),
         ]);
     }
 
@@ -60,10 +73,10 @@ class AvailabilityController extends Controller
         $buffer  = (int) LabSetting::get('buffer_minutes', 15);
         $buffEnd = Carbon::parse($validated['end_time'])->addMinutes($buffer)->format('H:i:s');
 
-        // Bookings overlapping the requested window.
+        // Single query for all active statuses; partition in PHP to avoid an extra DB round-trip.
         // Strict on end_time side so existing bookings ending exactly at the new
         // booking's start_time (adjacent, no overlap) are NOT treated as conflicts.
-        $overlapping = Booking::query()
+        $all = Booking::query()
             ->where('date', $validated['date'])
             ->whereIn('status', ['submitted', 'under_review', 'approved'])
             ->where('start_time', '<', $buffEnd)
@@ -71,18 +84,36 @@ class AvailabilityController extends Controller
             ->with('computers')
             ->get();
 
-        // If any full_room OR exclusive room_only is active in the window → ALL computers are unavailable
-        $hasFullRoom      = $overlapping->where('booking_type', 'full_room')->isNotEmpty();
-        $hasExclusiveRoom = $overlapping
+        $approved = $all->where('status', 'approved');
+        $pending  = $all->whereIn('status', ['submitted', 'under_review']);
+
+        // Hard-blocked (approved only): full_room or exclusive room_only takes the whole lab.
+        $hasFullRoom      = $approved->where('booking_type', 'full_room')->isNotEmpty();
+        $hasExclusiveRoom = $approved
             ->where('booking_type', 'room_only')
             ->where('room_sharing', 'exclusive')
             ->isNotEmpty();
+        $allHardBlocked = $hasFullRoom || $hasExclusiveRoom;
 
-        $allBlocked = $hasFullRoom || $hasExclusiveRoom;
-
-        $bookedIds = $allBlocked
+        $bookedIds = $allHardBlocked
             ? Computer::pluck('id')->toArray()
-            : $overlapping
+            : $approved
+                ->where('booking_type', 'computers_only')
+                ->flatMap(fn ($b) => $b->computers->pluck('id'))
+                ->unique()
+                ->values()
+                ->toArray();
+
+        // Soft-pending: another user has a submitted/under_review claim on these PCs.
+        $hasPendingFullBlock = $pending->where('booking_type', 'full_room')->isNotEmpty()
+            || $pending
+                ->where('booking_type', 'room_only')
+                ->where('room_sharing', 'exclusive')
+                ->isNotEmpty();
+
+        $pendingIds = $hasPendingFullBlock
+            ? Computer::pluck('id')->toArray()
+            : $pending
                 ->where('booking_type', 'computers_only')
                 ->flatMap(fn ($b) => $b->computers->pluck('id'))
                 ->unique()
@@ -96,6 +127,9 @@ class AvailabilityController extends Controller
                 'label'     => $c->label,
                 'status'    => $c->status,
                 'available' => $c->status === 'online' && ! in_array($c->id, $bookedIds, true),
+                'pending'   => $c->status === 'online'
+                               && ! in_array($c->id, $bookedIds, true)
+                               && in_array($c->id, $pendingIds, true),
             ]);
 
         return response()->json(['computers' => $computers]);
