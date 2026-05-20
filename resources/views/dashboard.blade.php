@@ -154,7 +154,7 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <a href="{{ route('booking.history') }}" class="btn-ghost btn-sm">Lihat Riwayat</a>
-                    <a href="{{ route('booking.schedule') }}" class="btn-mark btn-sm">
+                    <a href="{{ route('booking.schedule', ['reset' => 1]) }}" class="btn-mark btn-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Buat Reservasi
                     </a>
@@ -461,7 +461,7 @@ const PENDING_BLOCKS     = @json($pendingBlocks);     // day -> [pending/under_r
 const SHARED_ROOM_BLOCKS = @json($sharedRoomBlocks);  // day -> [hours with any active room_only+shared booking]
 const USER_EVENTS        = @json($userEvents);        // day -> [hours this user has booked]
 
-let modalDay = null, modalSlot = null, selectedPcIds = [];
+let modalDay = null, modalSlot = null, selectedPcIds = [], currentSlotIsSharedRoom = false;
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
 const BOOKING_SCHEDULE_URL = @json(route('booking.schedule'));
 
@@ -557,11 +557,17 @@ function renderTimeSlots(day) {
         // - "Saya" (own pending booking) takes precedence over "Menunggu" yellow.
         // - "Berbagi" (shared-room) is shown only when none of the above apply; slot stays
         //   clickable (computers_only and room_only+shared are still allowed for the slot).
-        const hardBlocked  = FULL_BLOCKS[day]    && FULL_BLOCKS[day].includes(hourKey);
-        const isMine       = USER_EVENTS[day]    && USER_EVENTS[day].includes(hourKey);
-        const softPending  = !isMine && PENDING_BLOCKS[day] && PENDING_BLOCKS[day].includes(hourKey);
-        const sharedRoom   = !hardBlocked && !isMine && !softPending
-                             && SHARED_ROOM_BLOCKS[day] && SHARED_ROOM_BLOCKS[day].includes(hourKey);
+        const hardBlocked      = FULL_BLOCKS[day]    && FULL_BLOCKS[day].includes(hourKey);
+        const isMine           = USER_EVENTS[day]    && USER_EVENTS[day].includes(hourKey);
+        const softPending      = !isMine && PENDING_BLOCKS[day] && PENDING_BLOCKS[day].includes(hourKey);
+        // sharedRoomModal: any active room_only+shared booking exists for this hour, regardless of
+        // ownership. Passed to the modal so type restrictions apply even on the user's own "Saya"
+        // slot — otherwise user 1 could double-book by clicking their own shared-room slot.
+        const sharedRoomModal  = !hardBlocked
+                                 && SHARED_ROOM_BLOCKS[day]
+                                 && SHARED_ROOM_BLOCKS[day].includes(hourKey);
+        // sharedRoom: visual-only — gated by !isMine so "Saya" slots stay blue, not teal.
+        const sharedRoom       = sharedRoomModal && !isMine && !softPending;
 
         const el = document.createElement('div');
         el.className = 'cal-slot'
@@ -581,7 +587,8 @@ function renderTimeSlots(day) {
                      + '<span style="font-size:9.5px;color:rgba(10,26,71,.38);font-family:\'Sora\',sans-serif;font-weight:500">s/d ' + fmt(slot.endMin) + '</span>'
                      + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + statusLabel + '</span>';
         // Hard-blocked slots are non-clickable. Soft-pending, shared-room, and free slots open the modal.
-        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom }));
+        // Pass sharedRoomModal (not sharedRoom) so type restrictions apply even on "Saya" slots.
+        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom: sharedRoomModal }));
         grid.appendChild(el);
     });
 }
@@ -625,6 +632,7 @@ async function openSlotModal(day, slot, opts) {
     modalDay = day; modalSlot = slot; selectedPcIds = [];
     const softPending = !!(opts && opts.softPending);
     const sharedRoom  = !!(opts && opts.sharedRoom);
+    currentSlotIsSharedRoom = sharedRoom;  // persisted for navigateToBooking()
 
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
@@ -788,6 +796,9 @@ function navigateToBooking() {
     }
     if (currentResType === 'computer' && selectedPcIds.length > 0) {
         selectedPcIds.forEach(id => params.append('computers[]', id));
+    }
+    if (currentSlotIsSharedRoom) {
+        params.set('room_shared', '1');
     }
 
     window.location.href = BOOKING_SCHEDULE_URL + '?' + params.toString();

@@ -6,7 +6,7 @@
             title="Riwayat Reservasi"
             meta="Semua permintaan yang pernah Anda buat">
             <x-slot:actions>
-                <a href="{{ route('booking.schedule') }}" class="btn-mark btn-sm">
+                <a href="{{ route('booking.schedule', ['reset' => 1]) }}" class="btn-mark btn-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>

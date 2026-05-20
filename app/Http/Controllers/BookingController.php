@@ -165,18 +165,29 @@ class BookingController extends Controller
     /** Step 1: schedule (type + date + time + computers) */
     public function showSchedule(Request $request): View|RedirectResponse
     {
+        // ?reset=1 forces a clean slate — used by the "Buat Reservasi" header link so a stale
+        // shared_room_active flag (or any other prefill) from a previously-abandoned draft
+        // doesn't bleed into a fresh booking flow.
+        if ($request->boolean('reset')) {
+            session()->forget('booking_draft');
+            return redirect()->route('booking.schedule');
+        }
+
         // If the dashboard modal navigated here with prefill params, seed the session draft
         // and redirect to the clean URL so the form renders without query params.
         if ($request->hasAny(['type', 'date', 'start_time', 'end_time'])) {
             $typeMap = ['computer' => 'computers_only', 'both' => 'full_room', 'room' => 'room_only'];
             $rawType = $request->input('type', '');
             $prefill = [
-                'type'         => $typeMap[$rawType] ?? $rawType,
-                'date'         => $request->input('date', ''),
-                'start_time'   => $request->input('start_time', ''),
-                'end_time'     => $request->input('end_time', ''),
-                'room_sharing' => $request->input('room_sharing'),
-                'computers'    => array_map('intval', (array) $request->input('computers', [])),
+                'type'               => $typeMap[$rawType] ?? $rawType,
+                'date'               => $request->input('date', ''),
+                'start_time'         => $request->input('start_time', ''),
+                'end_time'           => $request->input('end_time', ''),
+                'room_sharing'       => $request->input('room_sharing'),
+                'computers'          => array_map('intval', (array) $request->input('computers', [])),
+                // When the originating slot has an active room_only+shared booking, the schedule
+                // page disables full_room and room_only options — only computers_only is allowed.
+                'shared_room_active' => $request->boolean('room_shared'),
             ];
             session(['booking_draft.schedule' => $prefill]);
             return redirect()->route('booking.schedule');

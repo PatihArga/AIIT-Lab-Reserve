@@ -47,6 +47,19 @@
             </div>
         @endif
 
+        @php $sharedRoomActive = $draft['shared_room_active'] ?? false; @endphp
+
+        @if ($sharedRoomActive)
+            <div class="mb-6 flex items-start gap-3 p-4 rounded-lg bg-teal-50 border border-teal-200 text-sm text-teal-800">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <line x1="12" y1="16" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Ruangan sedang digunakan berbagi pada slot ini — hanya <strong>Komputer Saja</strong> yang tersedia. Opsi <strong>Ruang + Komputer</strong> dan <strong>Ruang Saja</strong> dinonaktifkan.</span>
+            </div>
+        @endif
+
         <form action="{{ route('booking.logbook') }}" method="GET"
               x-data="bookingForm()"
               @submit.prevent="(selected && isoDate) && $el.submit()">
@@ -84,8 +97,9 @@
                     </label>
 
                     {{-- Ruang + Komputer --}}
-                    <label class="block cursor-pointer">
-                        <input type="radio" name="type" value="full_room" class="sr-only peer" x-model="selected">
+                    <label class="block {{ $sharedRoomActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer' }}">
+                        <input type="radio" name="type" value="full_room" class="sr-only peer" x-model="selected"
+                               {{ $sharedRoomActive ? 'disabled' : '' }}>
                         <div class="flex items-start gap-5 p-5 rounded-xl border-2 border-rule bg-white
                                     peer-checked:border-mark-500 peer-checked:bg-mark-50/60
                                     hover:border-mark-300 transition-all duration-150">
@@ -110,8 +124,9 @@
                     </label>
 
                     {{-- Ruang Saja --}}
-                    <label class="block cursor-pointer">
-                        <input type="radio" name="type" value="room_only" class="sr-only peer" x-model="selected">
+                    <label class="block {{ $sharedRoomActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer' }}">
+                        <input type="radio" name="type" value="room_only" class="sr-only peer" x-model="selected"
+                               {{ $sharedRoomActive ? 'disabled' : '' }}>
                         <div class="flex items-start gap-5 p-5 rounded-xl border-2 border-rule bg-white
                                     peer-checked:border-ink-700 peer-checked:bg-ink-50/40
                                     hover:border-ink-300 transition-all duration-150">
