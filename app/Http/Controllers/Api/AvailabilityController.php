@@ -31,19 +31,42 @@ class AvailabilityController extends Controller
             'room_sharing' => ['nullable', 'in:exclusive,shared'],
         ]);
 
-        // Hard-block check: only approved bookings count as real conflicts.
-        $conflict = DB::transaction(fn () => $this->bookings->checkConflict(
-            date:         $validated['date'],
-            startTime:    $validated['start_time'],
-            endTime:      $validated['end_time'],
-            bookingType:  $validated['type'],
-            computerIds:  $validated['computers'] ?? [],
-            roomSharing:  $validated['room_sharing'] ?? null,
-            approvedOnly: true,
-        ));
+        // Run both conflict checks under a single transaction:
+        //  - $hardConflict: only APPROVED bookings — the slot is definitively taken.
+        //  - $pendingConflict: ANY active booking (incl. submitted/under_review). This mirrors
+        //    createBooking() which uses approvedOnly=false. If this fires, submission will fail
+        //    even though no approved booking blocks the slot — so we must report it as a conflict
+        //    instead of a misleading "you can still submit" amber warning.
+        // One transaction prevents a TOCTOU gap between the two checks and avoids
+        // re-acquiring the same row locks twice per request.
+        [$hardConflict, $pendingConflict] = DB::transaction(function () use ($validated) {
+            $hard = $this->bookings->checkConflict(
+                date:         $validated['date'],
+                startTime:    $validated['start_time'],
+                endTime:      $validated['end_time'],
+                bookingType:  $validated['type'],
+                computerIds:  $validated['computers'] ?? [],
+                roomSharing:  $validated['room_sharing'] ?? null,
+                approvedOnly: true,
+            );
 
-        // Soft-pending check: another user has an unreviewed request for this slot.
-        // No buffer here — pending bookings display at their actual times.
+            $soft = ! $hard && $this->bookings->checkConflict(
+                date:         $validated['date'],
+                startTime:    $validated['start_time'],
+                endTime:      $validated['end_time'],
+                bookingType:  $validated['type'],
+                computerIds:  $validated['computers'] ?? [],
+                roomSharing:  $validated['room_sharing'] ?? null,
+                approvedOnly: false,
+            );
+
+            return [$hard, $soft];
+        });
+
+        $conflict = $hardConflict || $pendingConflict;
+
+        // hasPending: a competing pending request exists AND submission is still viable.
+        // Only shown when neither hard nor pending conflict fires.
         $hasPending = ! $conflict && Booking::where('date', $validated['date'])
             ->whereIn('status', ['submitted', 'under_review'])
             ->where('start_time', '<', $validated['end_time'])
@@ -53,11 +76,13 @@ class AvailabilityController extends Controller
         return response()->json([
             'available' => ! $conflict,
             'pending'   => $hasPending,
-            'message'   => $conflict
+            'message'   => $hardConflict
                 ? 'Slot ini sudah disetujui untuk pengguna lain.'
-                : ($hasPending
-                    ? 'Ada permintaan yang sedang ditinjau untuk slot ini. Anda tetap dapat mengajukan permintaan.'
-                    : 'Slot tersedia.'),
+                : ($pendingConflict
+                    ? 'Slot ini bentrok dengan permintaan lain yang sedang ditinjau dan tidak kompatibel.'
+                    : ($hasPending
+                        ? 'Ada permintaan yang sedang ditinjau untuk slot ini. Anda tetap dapat mengajukan permintaan.'
+                        : 'Slot tersedia.')),
         ]);
     }
 

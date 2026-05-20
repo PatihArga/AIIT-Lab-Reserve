@@ -118,10 +118,25 @@ class BookingController extends Controller
                 });
         };
 
-        // fullBlocks    — hours fully unavailable due to an APPROVED booking (hard, non-clickable).
-        // pendingBlocks — hours with pending requests (soft, clickable + yellow warning).
+        // fullBlocks       — hours fully unavailable due to an APPROVED booking (hard, non-clickable).
+        // pendingBlocks    — hours with pending requests (soft, clickable + yellow warning).
+        // sharedRoomBlocks — hours where any active room_only+shared booking exists. Slot stays
+        //                    clickable (computers_only and room_only+shared still allowed) but
+        //                    full_room and room_only+exclusive are blocked — surface this upfront.
         $fullBlocks    = $computeHourBlocks($approvedMonth);
         $pendingBlocks = $computeHourBlocks($pendingMonth);
+
+        $sharedRoomBlocks = $monthBookings
+            ->filter(fn ($b) => $b->booking_type === 'room_only' && $b->room_sharing === 'shared')
+            ->groupBy(fn ($b) => (int) $b->date->day)
+            ->map(fn ($group) => $group
+                ->flatMap(function ($b) {
+                    $start = (int) Carbon::parse($b->start_time)->hour;
+                    $end   = (int) Carbon::parse($b->end_time)->hour;
+                    return range($start, max($start, $end - 1));
+                })
+                ->unique()->sort()->values()
+            );
 
         // userEvents: day → [hours where the current user has any active booking]
         $userEvents = $user->bookings()
@@ -141,7 +156,7 @@ class BookingController extends Controller
 
         return view('dashboard', compact(
             'upcomingBookings', 'completedBookings', 'stats',
-            'fullBlocks', 'pendingBlocks', 'userEvents'
+            'fullBlocks', 'pendingBlocks', 'sharedRoomBlocks', 'userEvents'
         ));
     }
 

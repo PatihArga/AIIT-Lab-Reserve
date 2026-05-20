@@ -42,6 +42,8 @@
 .cal-slot.slot-pending:hover { border-color: #F59E0B; background: #fff; }
 .cal-slot.slot-mine { background: #EFF6FF; border-color: #DBEAFE; color: #3B82F6; }
 .cal-slot.slot-mine:hover { border-color: #93C5FD; background: #fff; }
+.cal-slot.slot-shared { background: #F0FDFA; border-color: #99F6E4; color: #0D9488; }
+.cal-slot.slot-shared:hover { border-color: #2DD4BF; background: #CCFBF1; }
 .interval-btn { padding: 4px 10px; font-size: 10.5px; font-weight: 600; font-family: 'Sora', sans-serif; border: none; background: transparent; color: rgba(10,26,71,.4); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
 .interval-btn.active { background: #0A1A47; color: #fff; }
 .interval-btn:hover:not(.active) { background: #FAFAF7; color: #0A1A47; }
@@ -58,6 +60,10 @@
 .type-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 10px; border: 1.5px solid rgba(15,36,96,.08); background: #FAFAF7; cursor: pointer; text-align: center; font-family: 'Sora', sans-serif; transition: border-color .15s, background .15s, box-shadow .15s; }
 .type-card:hover { border-color: #DBEAFE; background: #fff; }
 .type-card.active { border-color: #F5B800; background: #FFFBEB; box-shadow: 0 0 0 3px rgba(245,184,0,.12); }
+.type-card.is-disabled { opacity: .45; cursor: not-allowed; background: #FAFAF7; }
+.type-card.is-disabled:hover { border-color: rgba(15,36,96,.08); background: #FAFAF7; }
+.sharing-btn.is-disabled { opacity: .45; cursor: not-allowed; background: #FAFAF7; }
+.sharing-btn.is-disabled:hover { border-color: rgba(15,36,96,.08); background: #FAFAF7; }
 .type-card-icon { width: 32px; height: 32px; border-radius: 6px; background: #fff; border: 1px solid rgba(15,36,96,.08); display: flex; align-items: center; justify-content: center; }
 .type-card.active .type-card-icon { background: #F5B800; border-color: #D9A300; }
 .type-card-icon svg { width: 16px; height: 16px; stroke: rgba(10,26,71,.5); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -450,9 +456,10 @@
 <script>
 const MONTHS_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day }});
-const FULL_BLOCKS    = @json($fullBlocks);     // day -> [approved hard-block hours, lab-wide]
-const PENDING_BLOCKS = @json($pendingBlocks);  // day -> [pending/under_review soft-block hours]
-const USER_EVENTS    = @json($userEvents);     // day -> [hours this user has booked]
+const FULL_BLOCKS        = @json($fullBlocks);        // day -> [approved hard-block hours, lab-wide]
+const PENDING_BLOCKS     = @json($pendingBlocks);     // day -> [pending/under_review soft-block hours]
+const SHARED_ROOM_BLOCKS = @json($sharedRoomBlocks);  // day -> [hours with any active room_only+shared booking]
+const USER_EVENTS        = @json($userEvents);        // day -> [hours this user has booked]
 
 let modalDay = null, modalSlot = null, selectedPcIds = [];
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
@@ -546,29 +553,35 @@ function renderTimeSlots(day) {
     grid.innerHTML = '';
     slots.forEach((slot, idx) => {
         const hourKey      = Math.floor(slot.startHour);
-        // Priority: hard-block > own booking > pending soft-block > free.
-        // Own pending booking shows as "Saya" (blue), not "Menunggu" (yellow).
+        // Priority: hard-block > own booking > pending soft-block > shared-room > free.
+        // - "Saya" (own pending booking) takes precedence over "Menunggu" yellow.
+        // - "Berbagi" (shared-room) is shown only when none of the above apply; slot stays
+        //   clickable (computers_only and room_only+shared are still allowed for the slot).
         const hardBlocked  = FULL_BLOCKS[day]    && FULL_BLOCKS[day].includes(hourKey);
         const isMine       = USER_EVENTS[day]    && USER_EVENTS[day].includes(hourKey);
         const softPending  = !isMine && PENDING_BLOCKS[day] && PENDING_BLOCKS[day].includes(hourKey);
+        const sharedRoom   = !hardBlocked && !isMine && !softPending
+                             && SHARED_ROOM_BLOCKS[day] && SHARED_ROOM_BLOCKS[day].includes(hourKey);
 
         const el = document.createElement('div');
         el.className = 'cal-slot'
-            + (hardBlocked              ? ' slot-booked'  : '')
-            + (!hardBlocked && isMine   ? ' slot-mine'    : '')
-            + (!hardBlocked && softPending ? ' slot-pending' : '');
+            + (hardBlocked                  ? ' slot-booked'  : '')
+            + (!hardBlocked && isMine       ? ' slot-mine'    : '')
+            + (!hardBlocked && softPending  ? ' slot-pending' : '')
+            + (sharedRoom                   ? ' slot-shared'  : '');
         el.style.opacity = '0';
         el.style.animation = 'slotFadeIn .28s ' + (idx * 30) + 'ms forwards';
         const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
         const statusLabel = hardBlocked ? 'Penuh'
             : isMine      ? 'Saya'
             : softPending ? 'Menunggu'
+            : sharedRoom  ? 'Berbagi'
             : 'Tersedia';
         el.innerHTML = '<span style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:inherit">' + fmt(slot.startMin) + '</span>'
                      + '<span style="font-size:9.5px;color:rgba(10,26,71,.38);font-family:\'Sora\',sans-serif;font-weight:500">s/d ' + fmt(slot.endMin) + '</span>'
                      + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + statusLabel + '</span>';
-        // Hard-blocked slots are non-clickable. Soft-pending and free slots open the modal.
-        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine }));
+        // Hard-blocked slots are non-clickable. Soft-pending, shared-room, and free slots open the modal.
+        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom }));
         grid.appendChild(el);
     });
 }
@@ -582,10 +595,12 @@ function resetSlots() {
 let currentResType = 'computer', currentSharing = 'exclusive';
 
 function selectResType(type) {
+    const card = document.querySelector('.type-card[data-type="' + type + '"]');
+    if (!card || card.classList.contains('is-disabled')) return;
     selectedPcIds = [];
     currentResType = type;
     document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
-    document.querySelector('.type-card[data-type="' + type + '"]').classList.add('active');
+    card.classList.add('active');
     document.querySelectorAll('.computer-slot').forEach(el => { el.style.outline = ''; el.style.outlineOffset = ''; });
     const sharingRow = document.getElementById('modal-sharing-row');
     const computersSection = document.getElementById('modal-computers-section');
@@ -599,14 +614,17 @@ function selectResType(type) {
 }
 
 function selectSharing(val) {
+    const btn = document.querySelector('.sharing-btn[data-val="' + val + '"]');
+    if (!btn || btn.classList.contains('is-disabled')) return;
     currentSharing = val;
     document.querySelectorAll('.sharing-btn').forEach(o => o.classList.remove('active'));
-    document.querySelector('.sharing-btn[data-val="' + val + '"]').classList.add('active');
+    btn.classList.add('active');
 }
 
 async function openSlotModal(day, slot, opts) {
     modalDay = day; modalSlot = slot; selectedPcIds = [];
     const softPending = !!(opts && opts.softPending);
+    const sharedRoom  = !!(opts && opts.sharedRoom);
 
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
@@ -614,11 +632,22 @@ async function openSlotModal(day, slot, opts) {
     const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
     document.getElementById('modal-time-title').textContent = fmt(slot.startMin) + ' — ' + fmt(slot.endMin);
 
+    // Reset type/sharing state. When sharedRoom=true, only 'computer' (computers_only) is
+    // offered from this entry point — both 'both' (full_room) and 'room' (room_only, any
+    // sharing mode) are disabled to keep the UX simple. Users wanting concurrent shared-room
+    // bookings can still go through the full booking flow directly.
     currentResType = 'computer'; currentSharing = 'exclusive';
-    document.querySelectorAll('.type-card').forEach(c => c.classList.remove('active'));
+
+    document.querySelectorAll('.type-card').forEach(c => {
+        c.classList.remove('active', 'is-disabled');
+        const t = c.getAttribute('data-type');
+        if (sharedRoom && (t === 'both' || t === 'room')) c.classList.add('is-disabled');
+    });
     document.querySelector('.type-card[data-type="computer"]').classList.add('active');
+
     document.querySelectorAll('.sharing-btn').forEach(o => o.classList.remove('active'));
     document.querySelector('.sharing-btn[data-val="exclusive"]').classList.add('active');
+
     document.getElementById('modal-sharing-row').style.display = 'none';
     document.getElementById('modal-computers-section').style.display = 'block';
     document.getElementById('modal-computer-label').textContent = 'Pilih unit komputer';
@@ -642,6 +671,22 @@ async function openSlotModal(day, slot, opts) {
         pendingBanner.style.display = 'flex';
     } else if (pendingBanner) {
         pendingBanner.style.display = 'none';
+    }
+
+    // Show / hide the shared-room info banner
+    let sharedBanner = document.getElementById('modal-shared-banner');
+    if (sharedRoom) {
+        if (!sharedBanner) {
+            sharedBanner = document.createElement('div');
+            sharedBanner.id = 'modal-shared-banner';
+            sharedBanner.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:#F0FDFA;border:1px solid #99F6E4;border-radius:8px;margin-bottom:14px;color:#0F766E;font-size:11.5px;line-height:1.45;';
+            sharedBanner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span><b>Ruangan sedang digunakan berbagi</b> pada slot ini. Anda tetap dapat memesan <b>Komputer</b>.</span>';
+            const section = document.getElementById('modal-computers-section');
+            section.parentNode.insertBefore(sharedBanner, section);
+        }
+        sharedBanner.style.display = 'flex';
+    } else if (sharedBanner) {
+        sharedBanner.style.display = 'none';
     }
 
     document.getElementById('slot-modal-overlay').classList.add('open');
