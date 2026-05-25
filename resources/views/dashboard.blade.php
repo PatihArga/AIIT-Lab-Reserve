@@ -553,10 +553,13 @@ function renderTimeSlots(day) {
     grid.innerHTML = '';
     slots.forEach((slot, idx) => {
         const hourKey      = Math.floor(slot.startHour);
-        // Priority: hard-block > own booking > pending soft-block > shared-room > free.
-        // - "Saya" (own pending booking) takes precedence over "Menunggu" yellow.
-        // - "Berbagi" (shared-room) is shown only when none of the above apply; slot stays
-        //   clickable (computers_only and room_only+shared are still allowed for the slot).
+        // Priority: own booking > hard-block > pending soft-block > shared-room > free.
+        // - "Saya" wins over "Penuh" so the user always sees their own bookings as theirs,
+        //   even when the booking type (full_room / room_only+exclusive) hard-blocks the slot.
+        // - The slot remains non-clickable when hardBlocked (the user cannot book anything else
+        //   on top of their own blocking booking), but the cursor reflects that.
+        // - "Saya" also takes precedence over "Menunggu" yellow.
+        // - "Berbagi" (shared-room) only when none of the above apply.
         const hardBlocked      = FULL_BLOCKS[day]    && FULL_BLOCKS[day].includes(hourKey);
         const isMine           = USER_EVENTS[day]    && USER_EVENTS[day].includes(hourKey);
         const softPending      = !isMine && PENDING_BLOCKS[day] && PENDING_BLOCKS[day].includes(hourKey);
@@ -568,25 +571,31 @@ function renderTimeSlots(day) {
                                  && SHARED_ROOM_BLOCKS[day].includes(hourKey);
         // sharedRoom: visual-only — gated by !isMine so "Saya" slots stay blue, not teal.
         const sharedRoom       = sharedRoomModal && !isMine && !softPending;
+        // Own bookings that ALSO hard-block the slot (user's own full_room / room_only+exclusive):
+        // visually shown as "Saya" but kept non-clickable since no compatible new booking exists.
+        const ownHardBlock     = hardBlocked && isMine;
 
         const el = document.createElement('div');
         el.className = 'cal-slot'
-            + (hardBlocked                  ? ' slot-booked'  : '')
-            + (!hardBlocked && isMine       ? ' slot-mine'    : '')
+            + (hardBlocked && !isMine       ? ' slot-booked'  : '')
+            + (isMine                       ? ' slot-mine'    : '')
             + (!hardBlocked && softPending  ? ' slot-pending' : '')
             + (sharedRoom                   ? ' slot-shared'  : '');
+        if (ownHardBlock) el.style.cursor = 'not-allowed';
         el.style.opacity = '0';
         el.style.animation = 'slotFadeIn .28s ' + (idx * 30) + 'ms forwards';
         const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-        const statusLabel = hardBlocked ? 'Penuh'
-            : isMine      ? 'Saya'
+        const statusLabel = isMine     ? 'Saya'
+            : hardBlocked ? 'Penuh'
             : softPending ? 'Menunggu'
             : sharedRoom  ? 'Berbagi'
             : 'Tersedia';
         el.innerHTML = '<span style="font-size:12px;font-weight:700;font-family:\'JetBrains Mono\',monospace;color:inherit">' + fmt(slot.startMin) + '</span>'
                      + '<span style="font-size:9.5px;color:rgba(10,26,71,.38);font-family:\'Sora\',sans-serif;font-weight:500">s/d ' + fmt(slot.endMin) + '</span>'
                      + '<span style="font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;opacity:.7;font-family:\'Sora\',sans-serif">' + statusLabel + '</span>';
-        // Hard-blocked slots are non-clickable. Soft-pending, shared-room, and free slots open the modal.
+        // Hard-blocked slots are non-clickable (even if isMine — user cannot book on top of their
+        // own full_room / room_only+exclusive). Soft-pending, shared-room, free, and "Saya" slots
+        // that aren't hard-blocked open the modal.
         // Pass sharedRoomModal (not sharedRoom) so type restrictions apply even on "Saya" slots.
         if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom: sharedRoomModal }));
         grid.appendChild(el);
