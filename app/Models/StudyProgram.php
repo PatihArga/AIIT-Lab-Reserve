@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudyProgram extends Model
 {
-    protected $fillable = ['name', 'email_domain', 'is_active'];
+    protected $fillable = ['name', 'email', 'is_active'];
 
     protected function casts(): array
     {

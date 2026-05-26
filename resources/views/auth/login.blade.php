@@ -3,7 +3,7 @@
     {{-- Step indicator --}}
     <div class="flex items-center gap-3 mb-10">
         <div class="step-dot-active">1</div>
-        <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-900">Email</span>
+        <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-900">Gmail Program Studi</span>
         <div class="step-connector"></div>
         <div class="step-dot-pending">2</div>
         <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-700/40">Pilih Nama</span>
@@ -25,13 +25,13 @@
         @csrf
 
         <div class="form-field">
-            <label for="email" class="form-label">Email Program Studi</label>
+            <label for="email" class="form-label">Gmail Program Studi</label>
             <input
                 id="email"
                 name="email"
                 type="email"
                 value="{{ old('email') }}"
-                placeholder="nama@ti.ukrida.ac.id"
+                placeholder="nama.prodi@gmail.com"
                 required
                 autofocus
                 autocomplete="username"

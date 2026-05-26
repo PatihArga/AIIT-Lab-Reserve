@@ -7,7 +7,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-        <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-700/50">Email</span>
+        <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-700/50">Gmail Program Studi</span>
         <div class="step-connector-complete"></div>
         <div class="step-dot-active">2</div>
         <span class="text-[0.7rem] uppercase tracking-label font-semibold text-ink-900">Pilih Nama</span>
@@ -85,7 +85,7 @@
 
         <a href="{{ route('login') }}"
            class="block text-center text-xs uppercase tracking-label font-semibold text-ink-700/50 hover:text-ink-700 transition-colors">
-            ← Gunakan email lain
+            ← Gunakan gmail lain
         </a>
     </form>
 

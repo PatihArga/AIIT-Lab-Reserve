@@ -11,6 +11,7 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -32,22 +33,21 @@ class AuthenticatedSessionController extends Controller
      */
     public function detectStudyProgram(LoginEmailRequest $request): RedirectResponse
     {
-        $email   = strtolower($request->input('email'));
-        $atIndex = strrpos($email, '@');
-        $domain  = $atIndex !== false ? substr($email, $atIndex) : '';
+        $email = strtolower(trim($request->input('email')));
 
-        $program = StudyProgram::where('email_domain', $domain)
+        $program = StudyProgram::where('email', $email)
             ->where('is_active', true)
             ->first();
 
         if (! $program) {
             throw ValidationException::withMessages([
-                'email' => 'Domain email tidak terdaftar pada program studi manapun.',
+                'email' => 'Gmail program studi tidak terdaftar.',
             ]);
         }
 
         $hasUsers = User::where('study_program_id', $program->id)
             ->where('is_active', true)
+            ->where('role', '!=', 'admin')
             ->exists();
 
         if (! $hasUsers) {
@@ -81,7 +81,8 @@ class AuthenticatedSessionController extends Controller
 
         $users = User::where('study_program_id', $programId)
             ->where('is_active', true)
-            ->orderByRaw("FIELD(role, 'lecturer', 'team', 'admin')")
+            ->where('role', '!=', 'admin')
+            ->orderByRaw("FIELD(role, 'lecturer', 'team')")
             ->orderBy('name')
             ->get(['id', 'name', 'role']);
 
@@ -133,43 +134,38 @@ class AuthenticatedSessionController extends Controller
     public function adminAuthenticate(Request $request): RedirectResponse
     {
         $request->validate([
-            'email'    => ['required', 'email'],
+            'gmail'    => ['required', 'email'],
             'password' => ['required', 'string'],
         ], [
-            'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
+            'gmail.required'    => 'Gmail wajib diisi.',
+            'gmail.email'       => 'Format Gmail tidak valid.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         $this->ensureIsNotRateLimitedByEmail($request);
 
-        if (! Auth::attempt(
-            ['email' => $request->input('email'), 'password' => $request->input('password')],
-            $request->boolean('remember')
-        )) {
+        $admin = User::where('gmail', $request->input('gmail'))
+            ->where('role', 'admin')
+            ->first();
+
+        if (! $admin || ! Hash::check($request->input('password'), $admin->password)) {
             RateLimiter::hit($this->throttleKeyByEmail($request));
 
             throw ValidationException::withMessages([
-                'email' => 'Email atau kata sandi tidak cocok.',
+                'gmail' => 'Gmail atau kata sandi tidak cocok.',
             ]);
         }
 
-        $user = Auth::user();
-
-        if ($user->role !== 'admin') {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
+        if (! $admin->is_active) {
             throw ValidationException::withMessages([
-                'email' => 'Akun ini tidak memiliki akses administrator.',
+                'gmail' => 'Akun admin nonaktif.',
             ]);
         }
 
         RateLimiter::clear($this->throttleKeyByEmail($request));
 
-        $user->forceFill(['last_login_at' => now()])->save();
-
+        Auth::login($admin, $request->boolean('remember'));
+        $admin->forceFill(['last_login_at' => now()])->save();
         $request->session()->regenerate();
 
         return redirect()->intended(route('admin.dashboard', absolute: false));
@@ -240,8 +236,7 @@ class AuthenticatedSessionController extends Controller
 
     protected function throttleKeyByEmail(Request $request): string
     {
-        return Str::transliterate(
-            Str::lower($request->input('email', '')).'|'.$request->ip()
-        );
+        $key = $request->input('gmail') ?? $request->input('email', '');
+        return Str::transliterate(Str::lower($key) . '|' . $request->ip());
     }
 }

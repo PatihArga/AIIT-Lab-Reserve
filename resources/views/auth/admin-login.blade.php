@@ -27,13 +27,13 @@
         @csrf
 
         <div class="form-field">
-            <label for="email" class="form-label">Email Admin</label>
+            <label for="gmail" class="form-label">Gmail Admin</label>
             <input
-                id="email"
-                name="email"
+                id="gmail"
+                name="gmail"
                 type="email"
-                value="{{ old('email') }}"
-                placeholder="admin@ukrida.ac.id"
+                value="{{ old('gmail') }}"
+                placeholder="nama@gmail.com"
                 required
                 autofocus
                 autocomplete="username"

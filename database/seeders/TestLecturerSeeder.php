@@ -11,7 +11,7 @@ class TestLecturerSeeder extends Seeder
 {
     public function run(): void
     {
-        $program = StudyProgram::where('email_domain', '@ti.ukrida.ac.id')->first();
+        $program = StudyProgram::where('name', 'Teknik Informatika')->first();
 
         User::updateOrCreate(
             ['email' => 'budi@ti.ukrida.ac.id'],

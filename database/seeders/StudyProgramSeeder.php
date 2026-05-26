@@ -10,16 +10,15 @@ class StudyProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            ['name' => 'Administrator',           'email_domain' => '@ukrida.ac.id'],
-            ['name' => 'Teknik Informatika',     'email_domain' => '@ti.ukrida.ac.id'],
-            ['name' => 'Sistem Informasi',        'email_domain' => '@si.ukrida.ac.id'],
-            ['name' => 'Teknik Elektro',          'email_domain' => '@te.ukrida.ac.id'],
-            ['name' => 'Teknik Industri',         'email_domain' => '@tk.ukrida.ac.id'],
+            ['name' => 'Teknik Informatika', 'email' => 'ti.ukrida@gmail.com'],
+            ['name' => 'Sistem Informasi',   'email' => 'si.ukrida@gmail.com'],
+            ['name' => 'Teknik Elektro',     'email' => 'te.ukrida@gmail.com'],
+            ['name' => 'Teknik Industri',    'email' => 'tk.ukrida@gmail.com'],
         ];
 
         foreach ($programs as $program) {
             StudyProgram::updateOrCreate(
-                ['email_domain' => $program['email_domain']],
+                ['name' => $program['name']],
                 array_merge($program, ['is_active' => true])
             );
         }
