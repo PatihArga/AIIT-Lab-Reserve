@@ -138,6 +138,23 @@ class BookingController extends Controller
                 ->unique()->sort()->values()
             );
 
+        // computerBookedBlocks — hours where any active computers_only booking exists.
+        // Mirrors $sharedRoomBlocks but tracks the OTHER incompatibility direction:
+        // full_room and room_only+exclusive become incompatible (a computer user would
+        // be evicted), while computers_only (other PCs) and room_only+shared remain valid.
+        // The slot stays clickable; the restriction surfaces inside the modal only.
+        $computerBookedBlocks = $monthBookings
+            ->filter(fn ($b) => $b->booking_type === 'computers_only')
+            ->groupBy(fn ($b) => (int) $b->date->day)
+            ->map(fn ($group) => $group
+                ->flatMap(function ($b) {
+                    $start = (int) Carbon::parse($b->start_time)->hour;
+                    $end   = (int) Carbon::parse($b->end_time)->hour;
+                    return range($start, max($start, $end - 1));
+                })
+                ->unique()->sort()->values()
+            );
+
         // userEvents: day → [hours where the current user has any active booking]
         $userEvents = $user->bookings()
             ->whereIn('status', ['submitted', 'under_review', 'approved'])
@@ -156,7 +173,7 @@ class BookingController extends Controller
 
         return view('dashboard', compact(
             'upcomingBookings', 'completedBookings', 'stats',
-            'fullBlocks', 'pendingBlocks', 'sharedRoomBlocks', 'userEvents'
+            'fullBlocks', 'pendingBlocks', 'sharedRoomBlocks', 'computerBookedBlocks', 'userEvents'
         ));
     }
 
@@ -188,6 +205,10 @@ class BookingController extends Controller
                 // When the originating slot has an active room_only+shared booking, the schedule
                 // page disables full_room and room_only options — only computers_only is allowed.
                 'shared_room_active' => $request->boolean('room_shared'),
+                // EC-H: when the originating slot has an active computers_only booking, the
+                // schedule page disables full_room and room_only+exclusive; room_only+shared
+                // and computers_only remain selectable.
+                'computer_booked_active' => $request->boolean('computer_booked'),
             ];
             session(['booking_draft.schedule' => $prefill]);
             return redirect()->route('booking.schedule');

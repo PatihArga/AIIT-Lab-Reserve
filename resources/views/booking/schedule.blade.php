@@ -47,7 +47,10 @@
             </div>
         @endif
 
-        @php $sharedRoomActive = $draft['shared_room_active'] ?? false; @endphp
+        @php
+            $sharedRoomActive       = $draft['shared_room_active'] ?? false;
+            $computerBookedActive   = $draft['computer_booked_active'] ?? false;
+        @endphp
 
         @if ($sharedRoomActive)
             <div class="mb-6 flex items-start gap-3 p-4 rounded-lg bg-teal-50 border border-teal-200 text-sm text-teal-800">
@@ -57,6 +60,15 @@
                     <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 <span>Ruangan sedang digunakan berbagi pada slot ini — hanya <strong>Komputer Saja</strong> yang tersedia. Opsi <strong>Ruang + Komputer</strong> dan <strong>Ruang Saja</strong> dinonaktifkan.</span>
+            </div>
+        @elseif ($computerBookedActive)
+            <div class="mb-6 flex items-start gap-3 p-4 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <line x1="12" y1="16" x2="12" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Slot ini sudah sebagian dipesan. Anda masih dapat memesan akses komputer bersama.</span>
             </div>
         @endif
 
@@ -97,9 +109,10 @@
                     </label>
 
                     {{-- Ruang + Komputer --}}
-                    <label class="block {{ $sharedRoomActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer' }}">
+                    <label class="block {{ ($sharedRoomActive || $computerBookedActive) ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer' }}"
+                           data-type-full-room>
                         <input type="radio" name="type" value="full_room" class="sr-only peer" x-model="selected"
-                               {{ $sharedRoomActive ? 'disabled' : '' }}>
+                               {{ ($sharedRoomActive || $computerBookedActive) ? 'disabled' : '' }}>
                         <div class="flex items-start gap-5 p-5 rounded-xl border-2 border-rule bg-white
                                     peer-checked:border-mark-500 peer-checked:bg-mark-50/60
                                     hover:border-mark-300 transition-all duration-150">
@@ -143,10 +156,12 @@
                                 </p>
                                 <div class="mt-4 space-y-2" x-show="selected === 'room_only'" x-transition>
                                     <p class="text-xs font-semibold uppercase tracking-label text-ink-700/60 mb-2">Mode penggunaan</p>
-                                    <label class="flex items-center gap-3 p-3 rounded-lg border border-rule bg-white hover:bg-ink-50/60 cursor-pointer has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/40 transition-all">
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border border-rule bg-white hover:bg-ink-50/60 has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/40 transition-all {{ $computerBookedActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer' }}"
+                                           data-sharing-exclusive>
                                         <input type="radio" name="room_sharing" value="exclusive" class="accent-ink-700"
                                                x-model="roomSharing"
-                                               {{ ($draft['room_sharing'] ?? null) === 'exclusive' ? 'checked' : '' }}>
+                                               {{ $computerBookedActive ? 'disabled' : '' }}
+                                               {{ !$computerBookedActive && ($draft['room_sharing'] ?? null) === 'exclusive' ? 'checked' : '' }}>
                                         <div>
                                             <div class="text-sm font-medium text-ink-900">Eksklusif</div>
                                             <div class="text-xs text-ink-700/50">Ruangan hanya untuk Anda, tidak ada pengguna lain di slot yang sama</div>
@@ -410,6 +425,11 @@ function bookingForm() {
         pcLoadingState: 'idle',  // idle | loading | loaded | error
         pcTimer: null,
 
+        // EC-H: true when the loaded slot has any active computers_only booking; drives
+        // dynamic disabling of full_room + exclusive sub-radio. Server-side flag
+        // ($computerBookedActive) handles the initial render when navigated from the modal.
+        hasComputerBookings: false,
+
         init() {
             this.build();
             // Watch the fields that affect availability
@@ -458,8 +478,11 @@ function bookingForm() {
                 const data = await res.json();
                 this.pcAvailability = data.computers;
                 this.pcLoadingState = 'loaded';
-                // Deselect any currently-checked PCs that are no longer available
+                // EC-H: react to the new flag — disable full_room + exclusive when this slot
+                // has an active computers_only booking. Re-enables on slots without one.
+                this.hasComputerBookings = data.has_computer_bookings ?? false;
                 this.$nextTick(() => {
+                    this.applyTypeRestrictions();
                     let changed = false;
                     this.$el.querySelectorAll('input[name="computers[]"]:checked').forEach(cb => {
                         const pcId = parseInt(cb.value, 10);
@@ -470,6 +493,44 @@ function bookingForm() {
                 });
             } catch (e) {
                 this.pcLoadingState = 'error';
+            }
+        },
+
+        // EC-H: dynamic restriction triggered after each /api/computers/available response.
+        // Server-side flag $sharedRoomActive (from session draft) is one-shot and never
+        // changes during page lifetime, so we never re-enable when sharedRoomActive=true.
+        applyTypeRestrictions() {
+            const sharedRoomActive = @json($sharedRoomActive);
+            const computerBooked   = this.hasComputerBookings;
+
+            // full_room radio — disabled when EITHER restriction fires
+            const fullRoom = this.$el.querySelector('input[name="type"][value="full_room"]');
+            if (fullRoom) {
+                const lbl = fullRoom.closest('label');
+                if (sharedRoomActive || computerBooked) {
+                    lbl?.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                    fullRoom.disabled = true;
+                    if (this.selected === 'full_room') this.selected = '';
+                } else {
+                    lbl?.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                    fullRoom.disabled = false;
+                }
+            }
+
+            // exclusive sub-radio — disabled only when computerBooked (sharedRoomActive
+            // already disables the whole 'room_only' card upstream, so this is redundant
+            // but harmless in that case).
+            const exclusive = this.$el.querySelector('input[name="room_sharing"][value="exclusive"]');
+            if (exclusive && !sharedRoomActive) {
+                const lbl = exclusive.closest('label');
+                if (computerBooked) {
+                    lbl?.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                    exclusive.disabled = true;
+                    if (this.roomSharing === 'exclusive') this.roomSharing = 'shared';
+                } else {
+                    lbl?.classList.remove('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+                    exclusive.disabled = false;
+                }
             }
         },
 

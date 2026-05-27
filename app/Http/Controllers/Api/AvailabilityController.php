@@ -157,6 +157,14 @@ class AvailabilityController extends Controller
                                && in_array($c->id, $pendingIds, true),
             ]);
 
-        return response()->json(['computers' => $computers]);
+        // EC-H: any active computers_only booking in this slot blocks full_room and
+        // room_only+exclusive from being chosen. The schedule page reads this to disable
+        // those options proactively (the backend still enforces via checkConflict).
+        $hasComputerBookings = $all->where('booking_type', 'computers_only')->isNotEmpty();
+
+        return response()->json([
+            'computers'             => $computers,
+            'has_computer_bookings' => $hasComputerBookings,
+        ]);
     }
 }

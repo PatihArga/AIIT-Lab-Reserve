@@ -459,9 +459,10 @@ const TODAY = new Date({{ now()->year }}, {{ now()->month - 1 }}, {{ now()->day 
 const FULL_BLOCKS        = @json($fullBlocks);        // day -> [approved hard-block hours, lab-wide]
 const PENDING_BLOCKS     = @json($pendingBlocks);     // day -> [pending/under_review soft-block hours]
 const SHARED_ROOM_BLOCKS = @json($sharedRoomBlocks);  // day -> [hours with any active room_only+shared booking]
+const COMPUTER_BOOKED_BLOCKS = @json($computerBookedBlocks);  // day -> [hours with any active computers_only booking]
 const USER_EVENTS        = @json($userEvents);        // day -> [hours this user has booked]
 
-let modalDay = null, modalSlot = null, selectedPcIds = [], currentSlotIsSharedRoom = false;
+let modalDay = null, modalSlot = null, selectedPcIds = [], currentSlotIsSharedRoom = false, currentSlotIsComputerBooked = false;
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
 const BOOKING_SCHEDULE_URL = @json(route('booking.schedule'));
 
@@ -571,6 +572,12 @@ function renderTimeSlots(day) {
                                  && SHARED_ROOM_BLOCKS[day].includes(hourKey);
         // sharedRoom: visual-only — gated by !isMine so "Saya" slots stay blue, not teal.
         const sharedRoom       = sharedRoomModal && !isMine && !softPending;
+        // computerBooked: any active computers_only booking exists for this hour. Passed to
+        // the modal regardless of ownership so type restrictions apply on the user's own
+        // "Saya" slot too. No tile color (PCs are partial, slot stays Tersedia/Saya/Menunggu).
+        const computerBooked   = !hardBlocked
+                                 && COMPUTER_BOOKED_BLOCKS[day]
+                                 && COMPUTER_BOOKED_BLOCKS[day].includes(hourKey);
         // Own bookings that ALSO hard-block the slot (user's own full_room / room_only+exclusive):
         // visually shown as "Saya" but kept non-clickable since no compatible new booking exists.
         const ownHardBlock     = hardBlocked && isMine;
@@ -597,7 +604,7 @@ function renderTimeSlots(day) {
         // own full_room / room_only+exclusive). Soft-pending, shared-room, free, and "Saya" slots
         // that aren't hard-blocked open the modal.
         // Pass sharedRoomModal (not sharedRoom) so type restrictions apply even on "Saya" slots.
-        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom: sharedRoomModal }));
+        if (!hardBlocked) el.addEventListener('click', () => openSlotModal(day, slot, { softPending, isMine, sharedRoom: sharedRoomModal, computerBooked }));
         grid.appendChild(el);
     });
 }
@@ -639,9 +646,11 @@ function selectSharing(val) {
 
 async function openSlotModal(day, slot, opts) {
     modalDay = day; modalSlot = slot; selectedPcIds = [];
-    const softPending = !!(opts && opts.softPending);
-    const sharedRoom  = !!(opts && opts.sharedRoom);
-    currentSlotIsSharedRoom = sharedRoom;  // persisted for navigateToBooking()
+    const softPending    = !!(opts && opts.softPending);
+    const sharedRoom     = !!(opts && opts.sharedRoom);
+    const computerBooked = !!(opts && opts.computerBooked);
+    currentSlotIsSharedRoom     = sharedRoom;      // persisted for navigateToBooking()
+    currentSlotIsComputerBooked = computerBooked;  // persisted for navigateToBooking()
 
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
@@ -655,15 +664,38 @@ async function openSlotModal(day, slot, opts) {
     // bookings can still go through the full booking flow directly.
     currentResType = 'computer'; currentSharing = 'exclusive';
 
+    // Type cards:
+    //   sharedRoom    → disable BOTH 'both' (full_room) AND 'room' (room_only) — only computer left
+    //   computerBooked → disable only 'both' (full_room); 'room' stays enabled, but its sharing
+    //                    sub-row is constrained below (exclusive disabled, shared remains)
     document.querySelectorAll('.type-card').forEach(c => {
         c.classList.remove('active', 'is-disabled');
         const t = c.getAttribute('data-type');
-        if (sharedRoom && (t === 'both' || t === 'room')) c.classList.add('is-disabled');
+        if (sharedRoom && (t === 'both' || t === 'room')) {
+            c.classList.add('is-disabled');
+        } else if (computerBooked && t === 'both') {
+            c.classList.add('is-disabled');
+        }
     });
     document.querySelector('.type-card[data-type="computer"]').classList.add('active');
 
-    document.querySelectorAll('.sharing-btn').forEach(o => o.classList.remove('active'));
-    document.querySelector('.sharing-btn[data-val="exclusive"]').classList.add('active');
+    // Sharing sub-buttons (visible only when 'Ruang Saja' is selected). When computerBooked,
+    // disable 'exclusive' — only 'shared' remains valid because the existing computers_only
+    // booking can coexist with room_only+shared but not with room_only+exclusive.
+    document.querySelectorAll('.sharing-btn').forEach(b => {
+        b.classList.remove('active', 'is-disabled');
+        if (computerBooked && b.getAttribute('data-val') === 'exclusive') {
+            b.classList.add('is-disabled');
+        }
+    });
+    // Default the active sharing to 'shared' when exclusive is disabled, else 'exclusive'.
+    if (computerBooked) {
+        document.querySelector('.sharing-btn[data-val="shared"]').classList.add('active');
+        currentSharing = 'shared';
+    } else {
+        document.querySelector('.sharing-btn[data-val="exclusive"]').classList.add('active');
+        currentSharing = 'exclusive';
+    }
 
     document.getElementById('modal-sharing-row').style.display = 'none';
     document.getElementById('modal-computers-section').style.display = 'block';
@@ -690,7 +722,8 @@ async function openSlotModal(day, slot, opts) {
         pendingBanner.style.display = 'none';
     }
 
-    // Show / hide the shared-room info banner
+    // Show / hide the shared-room info banner (sharedRoom takes priority over computerBooked
+    // because it's the stricter restriction — both 'both' and 'room' are disabled).
     let sharedBanner = document.getElementById('modal-shared-banner');
     if (sharedRoom) {
         if (!sharedBanner) {
@@ -704,6 +737,23 @@ async function openSlotModal(day, slot, opts) {
         sharedBanner.style.display = 'flex';
     } else if (sharedBanner) {
         sharedBanner.style.display = 'none';
+    }
+
+    // Show / hide the computer-booked info banner (only when sharedRoom is NOT also active —
+    // sharedRoom's banner covers the union of restrictions).
+    let computerBanner = document.getElementById('modal-computer-banner');
+    if (computerBooked && !sharedRoom) {
+        if (!computerBanner) {
+            computerBanner = document.createElement('div');
+            computerBanner.id = 'modal-computer-banner';
+            computerBanner.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;margin-bottom:14px;color:#92400E;font-size:11.5px;line-height:1.45;';
+            computerBanner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Slot ini sudah sebagian dipesan. Anda masih dapat memesan akses komputer bersama.</span>';
+            const section = document.getElementById('modal-computers-section');
+            section.parentNode.insertBefore(computerBanner, section);
+        }
+        computerBanner.style.display = 'flex';
+    } else if (computerBanner) {
+        computerBanner.style.display = 'none';
     }
 
     document.getElementById('slot-modal-overlay').classList.add('open');
@@ -808,6 +858,9 @@ function navigateToBooking() {
     }
     if (currentSlotIsSharedRoom) {
         params.set('room_shared', '1');
+    }
+    if (currentSlotIsComputerBooked) {
+        params.set('computer_booked', '1');
     }
 
     window.location.href = BOOKING_SCHEDULE_URL + '?' + params.toString();

@@ -371,6 +371,30 @@ These bugs were identified through manual testing and fixed during active develo
 - **Plan:** `Plan/AuthRework/PLAN-LOGIN-DROPDOWN-AND-ADMIN-GMAIL.md` (executed)
 - **Migration & rollback:** during execution, an earlier failed rollback attempt left 5 stale duplicate study program rows (IDs 6-10) that had no FK references; those were deleted manually. Fresh installs run cleanly via `php artisan migrate && php artisan db:seed --class=StudyProgramSeeder && php artisan db:seed --class=AdminUserSeeder`.
 
+### EC-H — `computers_only` booking active but UI still allows `full_room` and `room_only + exclusive` (2026-05-27)
+- **Problem:** When a `computers_only` booking existed for a time slot, the dashboard calendar modal and the schedule page still showed `full_room` ("Ruang + Komputer") and `room_only + exclusive` ("Eksklusif") as selectable options. A user could submit those types; `BookingService::checkConflict()` would correctly reject at save time, but the UI gave no upfront warning and the form let you try. `room_only + shared` ("Berbagi") must remain open — it is compatible with computer-only bookings.
+- **Fix (backend — `BookingController`):**
+  - Added `$computerBookedBlocks` computation (mirrors the `$sharedRoomBlocks` pattern): groups all active `computers_only` bookings (submitted / under_review / approved) by day → hour → `true`.
+  - Passed to the view via `compact('computerBookedBlocks')`.
+  - Added `'computer_booked_active' => $request->boolean('computer_booked')` to the session draft prefill block so the flag survives into the schedule page.
+- **Fix (backend — `AvailabilityController::availableComputers()`):**
+  - Added `$hasComputerBookings` boolean (`$all->where('booking_type', 'computers_only')->isNotEmpty()`).
+  - Returned as `has_computer_bookings` in the JSON response so the schedule page AJAX can read it.
+- **Fix (dashboard — `dashboard.blade.php`):**
+  - Added `COMPUTER_BOOKED_BLOCKS` JS constant (same shape as `SHARED_ROOM_BLOCKS`).
+  - Module-level `currentSlotIsComputerBooked = false`; set per slot in `renderTimeSlots()` and passed into `openSlotModal()`.
+  - Modal restrictions when `computerBooked`:
+    - `full_room` card (`both`) — disabled entirely.
+    - `room_only` (`exclusive`) sharing sub-button — disabled (key insight: only the sub-button, **not** the entire "Ruang Saja" card, so `room_only + shared` stays selectable).
+    - Default sharing auto-switches from `exclusive` → `shared` if `exclusive` is disabled.
+    - New amber `modal-computer-banner` shown with explanatory text.
+  - `navigateToBooking()` appends `&computer_booked=1` when `currentSlotIsComputerBooked`.
+- **Fix (schedule page — `schedule.blade.php`):**
+  - Server side: reads `$draft['computer_booked_active']`; disables `full_room` label and `exclusive` sub-radio label (same pattern as `$sharedRoomActive` disables but narrower — `room_only` card itself stays enabled).
+  - Amber banner shown when `$computerBookedActive && !$sharedRoomActive`.
+  - Alpine data: added `hasComputerBookings: false`; added `applyTypeRestrictions()` method that re-applies disabled states after each `loadPcAvailability()` AJAX response.
+- **Plan:** `Plan/EdgeCase-ComputerBlocksRoom/PLAN-COMPUTER-BOOKING-BLOCKS-ROOM-TYPES.md` (executed)
+
 ---
 
 ## 6. What to Build Next (Recommended Order)
