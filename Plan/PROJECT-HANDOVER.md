@@ -395,6 +395,17 @@ These bugs were identified through manual testing and fixed during active develo
   - Alpine data: added `hasComputerBookings: false`; added `applyTypeRestrictions()` method that re-applies disabled states after each `loadPcAvailability()` AJAX response.
 - **Plan:** `Plan/EdgeCase-ComputerBlocksRoom/PLAN-COMPUTER-BOOKING-BLOCKS-ROOM-TYPES.md` (executed)
 
+### EC-I — Past dates bookable via dashboard calendar (2026-05-29)
+- **Problem:** The dashboard calendar allowed clicking any past date's slot and the `Buat Reservasi Sesi Ini` button in the modal remained active. Users could be carried into the 3-step booking flow and only hit the `after_or_equal:today` validation error at final submission — 3 wasted steps with no upfront warning. Supervisor requirement: past dates must remain **clickable** (slot history view), but the reservation button must be blocked.
+- **Fix (dashboard — `dashboard.blade.php`):**
+  - `openSlotModal()`: computes `isPastSlot = slotDate < todayMidnight`; sets module-level `currentSlotIsPast`. After PC availability AJAX completes, `#modal-reserve-btn` stays `disabled` with `opacity:0.45` and `cursor:not-allowed`. A gray clock-icon banner ("Tanggal sudah lewat. Reservasi hanya dapat dibuat untuk hari ini dan setelahnya.") is inserted lazily as `#modal-past-banner`.
+  - `navigateToBooking()`: hard early-return if `currentSlotIsPast` — guards against dev-tools or keyboard invocation.
+- **Fix (backend — `BookingController::showSchedule()`):**
+  - Parses `?date=` with `Carbon::createFromFormat`; if the date is in the past, wipes `date`/`start_time`/`end_time`/`computers` from the prefill and calls `session()->flash('error', 'Tanggal yang dipilih sudah lewat...')`. User lands on a clean form with a red flash banner instead of a poisoned prefill.
+  - The existing `after_or_equal:today` POST validator in `validateSchedule()` is kept unchanged as the final safety net.
+- **Key design decision:** Past calendar days are **not** made non-clickable (unlike Sundays). Only the reservation action inside the modal is gated. This preserves the "view-only history" UX the supervisor wanted.
+- **Plan:** `Plan/EdgeCase-PastDateBooking/PLAN-BLOCK-PAST-DATE-BOOKING.md` (executed)
+
 ---
 
 ## 6. What to Build Next (Recommended Order)

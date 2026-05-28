@@ -462,7 +462,7 @@ const SHARED_ROOM_BLOCKS = @json($sharedRoomBlocks);  // day -> [hours with any 
 const COMPUTER_BOOKED_BLOCKS = @json($computerBookedBlocks);  // day -> [hours with any active computers_only booking]
 const USER_EVENTS        = @json($userEvents);        // day -> [hours this user has booked]
 
-let modalDay = null, modalSlot = null, selectedPcIds = [], currentSlotIsSharedRoom = false, currentSlotIsComputerBooked = false;
+let modalDay = null, modalSlot = null, selectedPcIds = [], currentSlotIsSharedRoom = false, currentSlotIsComputerBooked = false, currentSlotIsPast = false;
 const COMPUTERS_AVAIL_URL = @json(route('api.availability.computers'));
 const BOOKING_SCHEDULE_URL = @json(route('booking.schedule'));
 
@@ -486,6 +486,8 @@ function renderCalendar() {
         el.textContent = daysInPrev - i;
         grid.appendChild(el);
     }
+    // EC-I: past dates remain clickable so users can view slot history; the "Buat Reservasi"
+    // button inside the slot modal is the only thing that gets blocked (handled in openSlotModal).
     for (let d = 1; d <= daysInMonth; d++) {
         const el = document.createElement('div');
         el.className = 'cal-day';
@@ -649,8 +651,15 @@ async function openSlotModal(day, slot, opts) {
     const softPending    = !!(opts && opts.softPending);
     const sharedRoom     = !!(opts && opts.sharedRoom);
     const computerBooked = !!(opts && opts.computerBooked);
+    // EC-I: defense-in-depth. The calendar grid already strips click handlers from past days,
+    // but if openSlotModal is reached for a past date (dev tools, stale state, future regression),
+    // the reserve button must stay disabled and a banner must explain why.
+    const slotDate                = new Date(calYear, calMonth, day);
+    const todayMid                = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+    const isPastSlot              = slotDate < todayMid;
     currentSlotIsSharedRoom     = sharedRoom;      // persisted for navigateToBooking()
     currentSlotIsComputerBooked = computerBooked;  // persisted for navigateToBooking()
+    currentSlotIsPast           = isPastSlot;      // persisted for navigateToBooking()
 
     const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
     document.getElementById('modal-date-text').textContent =
@@ -739,6 +748,23 @@ async function openSlotModal(day, slot, opts) {
         sharedBanner.style.display = 'none';
     }
 
+    // EC-I: past-date banner. Takes priority over the others — when the slot is in the past,
+    // no reservation can be made regardless of room/computer state.
+    let pastBanner = document.getElementById('modal-past-banner');
+    if (isPastSlot) {
+        if (!pastBanner) {
+            pastBanner = document.createElement('div');
+            pastBanner.id = 'modal-past-banner';
+            pastBanner.style.cssText = 'display:flex;gap:8px;align-items:flex-start;padding:10px 12px;background:#F3F4F6;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:14px;color:#4B5563;font-size:11.5px;line-height:1.45;';
+            pastBanner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Tanggal sudah lewat. Reservasi hanya dapat dibuat untuk hari ini dan setelahnya.</span>';
+            const section = document.getElementById('modal-computers-section');
+            section.parentNode.insertBefore(pastBanner, section);
+        }
+        pastBanner.style.display = 'flex';
+    } else if (pastBanner) {
+        pastBanner.style.display = 'none';
+    }
+
     // Show / hide the computer-booked info banner (only when sharedRoom is NOT also active —
     // sharedRoom's banner covers the union of restrictions).
     let computerBanner = document.getElementById('modal-computer-banner');
@@ -782,7 +808,18 @@ async function openSlotModal(day, slot, opts) {
     }
 
     renderModalComputers(computerList);
-    document.getElementById('modal-reserve-btn').disabled = false;
+    // EC-I: keep the button disabled if the slot is in the past, even after PCs finish loading.
+    const reserveBtn = document.getElementById('modal-reserve-btn');
+    reserveBtn.disabled = currentSlotIsPast;
+    if (currentSlotIsPast) {
+        reserveBtn.style.opacity = '0.45';
+        reserveBtn.style.cursor  = 'not-allowed';
+        reserveBtn.title         = 'Tanggal sudah lewat — tidak dapat dipesan';
+    } else {
+        reserveBtn.style.opacity = '';
+        reserveBtn.style.cursor  = '';
+        reserveBtn.title         = '';
+    }
 }
 
 function renderModalComputers(computerList) {
@@ -838,6 +875,8 @@ function togglePcSelection(el, pcId) {
 
 function navigateToBooking() {
     if (!modalDay || !modalSlot) return;
+    // EC-I: hard stop if somehow invoked for a past date (keyboard, dev tools, future regression).
+    if (currentSlotIsPast) return;
 
     const typeMap = { computer: 'computers_only', both: 'full_room', room: 'room_only' };
     const fmt = m => String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');

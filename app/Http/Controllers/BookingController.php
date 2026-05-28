@@ -195,13 +195,33 @@ class BookingController extends Controller
         if ($request->hasAny(['type', 'date', 'start_time', 'end_time'])) {
             $typeMap = ['computer' => 'computers_only', 'both' => 'full_room', 'room' => 'room_only'];
             $rawType = $request->input('type', '');
+
+            // EC-I: defensive prefill drop. The dashboard calendar already blocks past dates,
+            // but if the user reaches this controller with `?date=<past>` via URL hand-edit,
+            // a stale bookmark, or any future regression, we don't want to poison the form —
+            // they should land on a clean schedule page with a flash error instead.
+            $rawDate     = $request->input('date', '');
+            $dateIsPast  = false;
+            if ($rawDate !== '') {
+                try {
+                    $parsed = Carbon::createFromFormat('Y-m-d', $rawDate);
+                    $dateIsPast = $parsed->lt(today());
+                } catch (\Throwable $e) {
+                    $rawDate = '';  // malformed input — let the form land empty
+                }
+            }
+            if ($dateIsPast) {
+                session()->flash('error', 'Tanggal yang dipilih sudah lewat. Silakan pilih tanggal hari ini atau setelahnya.');
+                $rawDate = '';
+            }
+
             $prefill = [
                 'type'               => $typeMap[$rawType] ?? $rawType,
-                'date'               => $request->input('date', ''),
-                'start_time'         => $request->input('start_time', ''),
-                'end_time'           => $request->input('end_time', ''),
+                'date'               => $rawDate,
+                'start_time'         => $dateIsPast ? '' : $request->input('start_time', ''),
+                'end_time'           => $dateIsPast ? '' : $request->input('end_time', ''),
                 'room_sharing'       => $request->input('room_sharing'),
-                'computers'          => array_map('intval', (array) $request->input('computers', [])),
+                'computers'          => $dateIsPast ? [] : array_map('intval', (array) $request->input('computers', [])),
                 // When the originating slot has an active room_only+shared booking, the schedule
                 // page disables full_room and room_only options — only computers_only is allowed.
                 'shared_room_active' => $request->boolean('room_shared'),
