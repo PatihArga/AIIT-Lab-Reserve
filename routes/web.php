@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminTeamController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BookingLogbookController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -20,12 +21,15 @@ Route::middleware(['auth', 'active'])->group(function () {
     // User dashboard (lecturer + team)
     Route::get('/dashboard', [BookingController::class, 'dashboard'])->name('dashboard');
 
-    // Booking creation flow (3 steps + final submit)
-    Route::get ('/booking/create',           fn () => redirect()->route('booking.schedule'))->name('booking.create');
-    Route::get ('/booking/create/schedule',  [BookingController::class, 'showSchedule'])->name('booking.schedule');
-    Route::get ('/booking/create/logbook',   [BookingController::class, 'showLogbook'])->name('booking.logbook');
-    Route::get ('/booking/create/review',    [BookingController::class, 'showReview'])->name('booking.review');
-    Route::post('/booking',                  [BookingController::class, 'store'])->name('booking.store');
+    // Calendar (week-view) — primary booking entry point
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+
+    // Booking creation — inline on the calendar (single POST). The old multi-step flow
+    // (schedule / logbook / review) was removed in the calendar redesign. `booking.schedule`
+    // survives only as a redirect shim so any legacy link still resolves; it is removed in
+    // the final cleanup phase once every reference has been repointed to the calendar.
+    Route::post('/calendar/booking',        [CalendarController::class, 'store'])->name('calendar.booking.store');
+    Route::get ('/booking/create/schedule', fn () => redirect()->route('calendar.index'))->name('booking.schedule');
 
     // Booking management
     Route::get ('/booking/history',                  [BookingController::class, 'history'])->name('booking.history');

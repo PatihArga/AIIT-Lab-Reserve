@@ -156,7 +156,11 @@ class BookingService
                 'submitted_at' => now(),
             ]);
 
-            if ($scheduleData['type'] === 'computers_only' && !empty($scheduleData['computers'])) {
+            // Attach selected PCs for computers_only (the booked units) and full_room
+            // (display-only — which PCs the room booking will use). The conflict rules in
+            // checkConflict() are unaffected: full_room still locks the entire room regardless.
+            if (in_array($scheduleData['type'], ['computers_only', 'full_room'], true)
+                && ! empty($scheduleData['computers'])) {
                 $booking->computers()->attach($scheduleData['computers']);
             }
 
