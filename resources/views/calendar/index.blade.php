@@ -308,7 +308,7 @@
                     <div class="wcal-row">
                         <div>
                             <label class="wcal-lbl">Waktu Mulai</label>
-                            <select class="wcal-select" x-model.number="creating.start" @change="onStartChange()">
+                            <select class="wcal-select" x-ref="startSel" x-model.number="creating.start" @change="onStartChange()">
                                 <template x-for="m in startOptions" :key="m">
                                     <option :value="m" x-text="fmtMin(m)"></option>
                                 </template>
@@ -316,7 +316,7 @@
                         </div>
                         <div>
                             <label class="wcal-lbl">Waktu Selesai</label>
-                            <select class="wcal-select" x-model.number="creating.end">
+                            <select class="wcal-select" x-ref="endSel" x-model.number="creating.end">
                                 <template x-for="m in endOptions" :key="m">
                                     <option :value="m" x-text="fmtMin(m)"></option>
                                 </template>
@@ -833,12 +833,26 @@ function weekCal() {
                 pos: this.popPos(anchorPt, 330, 540),
             };
             this.fetchPcAvail();
+            this.syncTimeSelects();
         },
         onStartChange() {
             if (this.creating.end <= this.creating.start) {
                 this.creating.end = Math.min(this.creating.start + 30, this.rangeEnd * 60);
             }
             this.fetchPcAvail();
+            this.syncTimeSelects();
+        },
+        // Force the <select>s to reflect creating.start/end after their <option>s render.
+        // x-model applies its value during the select's own init — which, for a select whose
+        // options come from a nested x-for, happens BEFORE the options exist, so the value
+        // fails to stick and the box shows the first option. Re-assigning on the next tick
+        // (options now present) keeps the dropdown in sync with the dragged slot.
+        syncTimeSelects() {
+            this.$nextTick(() => {
+                if (!this.creating) return;
+                if (this.$refs.startSel) this.$refs.startSel.value = String(this.creating.start);
+                if (this.$refs.endSel)   this.$refs.endSel.value   = String(this.creating.end);
+            });
         },
 
         get backendType() {

@@ -97,10 +97,10 @@
             </a>
 
             <div class="nav-section-label">Reservasi</div>
-            <a href="{{ route('booking.schedule', ['reset' => 1]) }}"
-               class="nav-item {{ str_starts_with($current, 'booking.create') || str_starts_with($current, 'booking.logbook') || str_starts_with($current, 'booking.schedule') || str_starts_with($current, 'booking.review') ? 'active' : '' }}">
-                <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/></svg>
-                <span>Buat Reservasi</span>
+            <a href="{{ route('calendar.index') }}"
+               class="nav-item {{ $current === 'calendar.index' ? 'active' : '' }}">
+                <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                <span>Kalender</span>
             </a>
             <a href="{{ route('booking.history') }}"
                class="nav-item {{ $current === 'booking.history' || $current === 'booking.show' ? 'active' : '' }}">

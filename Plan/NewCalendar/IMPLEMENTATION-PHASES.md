@@ -530,29 +530,40 @@ In the `@else` (non-admin) nav block, replace the "Buat Reservasi" item:
 ```
 
 ### Acceptance checks for Phase 3
-- [ ] Sidebar shows "Kalender" nav item (not "Buat Reservasi")
-- [ ] Clicking "Kalender" in sidebar navigates to `/calendar`
-- [ ] "Kalender" item is highlighted/active when on `/calendar`
-- [ ] Dashboard header "Buat Reservasi" button goes to `/calendar` (done in Phase 2)
+
+**Verified at code level (2026-06-02):**
+- [x] Sidebar nav item now reads "Kalender" → `route('calendar.index')`, active on `$current === 'calendar.index'` (calendar icon)
+- [x] `booking/history.blade.php` header button repointed `booking.schedule` → `calendar.index`
+- [x] Grep: no `booking.schedule` references remain outside its own route definition/comment → shim is safe to delete in Phase 4
+- [x] All views compile
+
+**Needs browser verification:**
+- [ ] Sidebar shows "Kalender", highlights when on `/calendar`, navigates correctly
+- [ ] History page "Buat Reservasi" button goes to `/calendar`
 
 ---
 
 ## Phase 4 — Cleanup
 
-**Goal:** Remove any remaining dead code not already deleted by Phase 1b.
+**Goal:** Remove the last transitional dead code.
 **Prerequisite:** All previous phases complete and verified.
 
-> **Note:** Phase 1b already removes the booking multi-step routes and view files. Phase 4 is now minimal — only the original `booking.create` redirect route remains (if not already removed in 1b).
-
-### Check first
-Run: `php artisan route:list | findstr booking.create`
-- If result is empty → Phase 4 is already done by Phase 1b. Skip.
-- If result shows the redirect route → remove it below.
+**Executed (2026-06-02):**
+- Removed the `booking.schedule` redirect shim from `routes/web.php` (all references repointed in Phases 2–3).
+- Deleted the orphaned `app/Http/Requests/BookingStoreRequest.php` (only ever used by the removed `BookingController::store()`).
 
 ### Acceptance checks for Phase 4
-- [ ] `php artisan route:list` — no route named `booking.create`, `booking.schedule`, `booking.logbook`, `booking.review`, `booking.store`
-- [ ] All kept routes still exist: `booking.history`, `booking.show`, `booking.cancel`, `booking.logbook.update`, `calendar.index`, `calendar.booking.store`
-- [ ] Full end-to-end smoke test: login → dashboard → sidebar Kalender → calendar → drag slot → fill form → Confirm booking → see booking detail → see booking on calendar
+
+**Verified at code level (2026-06-02):**
+- [x] `route:list` — no `booking.create`, `booking.schedule`, `booking.logbook` (GET), `booking.review`, `booking.store`
+- [x] Kept routes intact: `booking.history`, `booking.show`, `booking.cancel`, `booking.logbook.update`, `calendar.index`, `calendar.booking.store`, `dashboard`
+- [x] App boots (`route:list` runs); all views compile; no reference to the deleted FormRequest
+- [x] Grep: no remaining `booking.schedule` / `BookingStoreRequest` references in app code
+
+**Needs browser verification (full end-to-end smoke test):**
+- [ ] login → dashboard → sidebar Kalender → calendar → drag slot → fill form → Konfirmasi → booking detail → booking shows on calendar
+
+**Phase 4 status: code complete, verified.**
 
 ---
 

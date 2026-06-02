@@ -25,11 +25,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 
     // Booking creation — inline on the calendar (single POST). The old multi-step flow
-    // (schedule / logbook / review) was removed in the calendar redesign. `booking.schedule`
-    // survives only as a redirect shim so any legacy link still resolves; it is removed in
-    // the final cleanup phase once every reference has been repointed to the calendar.
-    Route::post('/calendar/booking',        [CalendarController::class, 'store'])->name('calendar.booking.store');
-    Route::get ('/booking/create/schedule', fn () => redirect()->route('calendar.index'))->name('booking.schedule');
+    // (schedule / logbook / review) was fully removed in the calendar redesign.
+    Route::post('/calendar/booking', [CalendarController::class, 'store'])->name('calendar.booking.store');
 
     // Booking management
     Route::get ('/booking/history',                  [BookingController::class, 'history'])->name('booking.history');
