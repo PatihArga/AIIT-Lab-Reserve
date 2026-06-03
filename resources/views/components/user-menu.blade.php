@@ -36,9 +36,6 @@
          x-transition:enter-end="opacity-100 translate-y-0"
          x-cloak
          class="mt-2 space-y-1 px-1 pb-1">
-        <a href="{{ route('profile.edit') }}" class="block px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md">
-            Profil
-        </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full text-left px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md">

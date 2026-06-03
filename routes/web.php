@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BookingLogbookController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,11 +36,6 @@ Route::middleware(['auth', 'active'])->group(function () {
     // AJAX availability endpoints (session-authenticated, JSON)
     Route::get('/api/check-availability',  [AvailabilityController::class, 'check'])->name('api.availability.check');
     Route::get('/api/computers/available', [AvailabilityController::class, 'availableComputers'])->name('api.availability.computers');
-
-    // Profile (Breeze default)
-    Route::get   ('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch ('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Admin-only routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
