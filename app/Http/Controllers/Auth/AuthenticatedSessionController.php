@@ -35,13 +35,25 @@ class AuthenticatedSessionController extends Controller
     {
         $email = strtolower(trim($request->input('email')));
 
+        // Rate-limit Step 1 (Gmail + program password) by email + IP.
+        $this->ensureIsNotRateLimitedByEmail($request);
+
         $program = StudyProgram::where('email', $email)
             ->where('is_active', true)
             ->first();
 
         if (! $program) {
+            RateLimiter::hit($this->throttleKeyByEmail($request));
             throw ValidationException::withMessages([
                 'email' => 'Gmail program studi tidak terdaftar.',
+            ]);
+        }
+
+        // Verify the shared program password.
+        if (! $program->password || ! Hash::check($request->input('password'), $program->password)) {
+            RateLimiter::hit($this->throttleKeyByEmail($request));
+            throw ValidationException::withMessages([
+                'password' => 'Kata sandi program studi tidak cocok.',
             ]);
         }
 
@@ -55,6 +67,8 @@ class AuthenticatedSessionController extends Controller
                 'email' => 'Belum ada akun aktif pada program studi ini. Hubungi admin.',
             ]);
         }
+
+        RateLimiter::clear($this->throttleKeyByEmail($request));
 
         $request->session()->put('login.study_program_id', $program->id);
         $request->session()->put('login.email_attempted', $email);
@@ -100,25 +114,21 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('login');
         }
 
-        $this->ensureIsNotRateLimited($request);
-
+        // The program password was already verified in Step 1; Step 2 only confirms the
+        // selected user belongs to that authenticated program, then logs them in directly.
         $user = User::where('id', $request->input('user_id'))
             ->where('study_program_id', $programId)
             ->where('is_active', true)
+            ->where('role', '!=', 'admin')
             ->first();
 
-        if (! $user || ! Auth::attempt(
-            ['id' => $user->id, 'password' => $request->input('password')],
-            $request->boolean('remember')
-        )) {
-            RateLimiter::hit($this->throttleKey($request));
-
+        if (! $user) {
             throw ValidationException::withMessages([
-                'password' => 'Kombinasi nama dan kata sandi tidak cocok.',
+                'user_id' => 'Pengguna yang dipilih tidak valid.',
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey($request));
+        Auth::login($user, $request->boolean('remember'));
 
         $user->forceFill(['last_login_at' => now()])->save();
 
@@ -189,31 +199,6 @@ class AuthenticatedSessionController extends Controller
         return $role === 'admin'
             ? route('admin.dashboard', absolute: false)
             : route('dashboard', absolute: false);
-    }
-
-    protected function ensureIsNotRateLimited(Request $request): void
-    {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey($request), 5)) {
-            return;
-        }
-
-        event(new Lockout($request));
-
-        $seconds = RateLimiter::availableIn($this->throttleKey($request));
-
-        throw ValidationException::withMessages([
-            'password' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
-    }
-
-    protected function throttleKey(Request $request): string
-    {
-        return Str::transliterate(
-            $request->session()->get('login.email_attempted', '').'|'.$request->ip()
-        );
     }
 
     protected function ensureIsNotRateLimitedByEmail(Request $request): void

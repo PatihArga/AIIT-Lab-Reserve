@@ -14,15 +14,17 @@ class LoginEmailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email:rfc', 'max:255'],
+            'email'    => ['required', 'string', 'email:rfc', 'max:255'],
+            'password' => ['required', 'string'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'email.required' => 'Email wajib diisi.',
-            'email.email'    => 'Format email tidak valid.',
+            'email.required'    => 'Email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
+            'password.required' => 'Kata sandi program studi wajib diisi.',
         ];
     }
 }

@@ -53,10 +53,6 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <a href="{{ route('booking.history') }}" class="btn-ghost btn-sm">Lihat Riwayat</a>
-                    <a href="{{ route('calendar.index') }}" class="btn-mark btn-sm">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        Buat Reservasi
-                    </a>
                 </div>
             </div>
         </div>

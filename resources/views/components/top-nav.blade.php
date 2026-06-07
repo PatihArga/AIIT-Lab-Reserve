@@ -53,12 +53,6 @@
 
             <div class="flex-1"></div>
 
-            {{-- Primary CTA --}}
-            <a href="{{ route('calendar.index') }}" class="btn-mark shrink-0">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span class="hidden sm:inline">Buat Reservasi</span>
-            </a>
-
             {{-- User menu --}}
             <div class="relative shrink-0" x-data="{ open: false }" @click.outside="open = false">
                 <button type="button" @click="open = !open"

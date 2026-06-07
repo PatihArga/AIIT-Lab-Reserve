@@ -15,7 +15,6 @@ class LoginAuthenticateRequest extends FormRequest
     {
         return [
             'user_id'  => ['required', 'integer', 'exists:users,id'],
-            'password' => ['required', 'string', 'min:6'],
             'remember' => ['nullable', 'boolean'],
         ];
     }
@@ -25,8 +24,6 @@ class LoginAuthenticateRequest extends FormRequest
         return [
             'user_id.required'  => 'Silakan pilih nama Anda.',
             'user_id.exists'    => 'Pengguna yang dipilih tidak valid.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min'      => 'Kata sandi minimal :min karakter.',
         ];
     }
 }

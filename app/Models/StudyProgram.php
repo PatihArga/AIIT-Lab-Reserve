@@ -6,11 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudyProgram extends Model
 {
-    protected $fillable = ['name', 'email', 'is_active'];
+    protected $fillable = ['name', 'email', 'password', 'is_active'];
+
+    protected $hidden = ['password'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'password'  => 'hashed',
+        ];
     }
 
     public function users()

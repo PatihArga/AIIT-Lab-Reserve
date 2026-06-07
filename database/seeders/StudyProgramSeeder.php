@@ -19,7 +19,10 @@ class StudyProgramSeeder extends Seeder
         foreach ($programs as $program) {
             StudyProgram::updateOrCreate(
                 ['name' => $program['name']],
-                array_merge($program, ['is_active' => true])
+                array_merge($program, [
+                    'password'  => 'Test@123', // hashed automatically via model cast
+                    'is_active' => true,
+                ])
             );
         }
     }
