@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Exceptions\BookingConflictException;
-use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\BookingLogbook;
 use App\Models\LabSetting;
+use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -222,16 +222,7 @@ class BookingService
                 'reviewed_at' => now(),
             ]);
 
-            AuditLog::create([
-                'user_id'        => Auth::id(),
-                'action'         => 'booking.auto_rejected',
-                'auditable_type' => Booking::class,
-                'auditable_id'   => $pending->id,
-                'old_values'     => ['status' => $oldStatus],
-                'new_values'     => ['status' => 'rejected'],
-                'ip_address'     => request()->ip(),
-                'user_agent'     => request()->userAgent(),
-            ]);
+            AuditLogService::record('booking.auto_rejected', $pending, ['status' => $oldStatus], ['status' => 'rejected']);
         }
     }
 

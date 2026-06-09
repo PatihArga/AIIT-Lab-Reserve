@@ -9,19 +9,29 @@
     </x-slot:header>
 
     <div class="max-w-xl mx-auto">
-        <form method="POST" action="{{ route('admin.settings.index') }}">
+        <form method="POST" action="{{ route('admin.settings.update') }}">
             @csrf
             @method('PUT')
+
+            @if ($errors->any())
+                <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <x-section label="Identitas Lab">
                 <div class="space-y-4">
                     <div class="form-field">
                         <label class="form-label form-required">Nama Lab</label>
-                        <input type="text" name="lab_name" value="Laboratorium Komputer 401" class="form-input" required>
+                        <input type="text" name="lab_name" value="{{ old('lab_name', $settings['lab_name']) }}" class="form-input" required>
                     </div>
                     <div class="form-field">
                         <label class="form-label form-required">Email Admin</label>
-                        <input type="email" name="admin_email" value="labadmin@ukrida.ac.id" class="form-input" required>
+                        <input type="email" name="admin_email" value="{{ old('admin_email', $settings['admin_email']) }}" class="form-input" required>
                         <p class="form-hint">Digunakan sebagai pengirim notifikasi email.</p>
                     </div>
                 </div>
@@ -34,7 +44,7 @@
                         <select name="operating_start" class="form-select">
                             @for ($h = 6; $h <= 10; $h++)
                                 <option value="{{ str_pad($h,2,'0',STR_PAD_LEFT).':00' }}"
-                                        {{ $h === 8 ? 'selected' : '' }}>
+                                        {{ old('operating_start', $settings['operating_start']) === (str_pad($h,2,'0',STR_PAD_LEFT).':00') ? 'selected' : '' }}>
                                     {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00
                                 </option>
                             @endfor
@@ -45,7 +55,7 @@
                         <select name="operating_end" class="form-select">
                             @for ($h = 16; $h <= 23; $h++)
                                 <option value="{{ str_pad($h,2,'0',STR_PAD_LEFT).':00' }}"
-                                        {{ $h === 22 ? 'selected' : '' }}>
+                                        {{ old('operating_end', $settings['operating_end']) === (str_pad($h,2,'0',STR_PAD_LEFT).':00') ? 'selected' : '' }}>
                                     {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00
                                 </option>
                             @endfor
@@ -55,11 +65,12 @@
 
                 <div class="form-field">
                     <label class="form-label form-required">Hari Operasional</label>
+                    @php $selectedDays = old('operating_days', $settings['operating_days']); @endphp
                     <div class="flex gap-2 flex-wrap mt-2">
-                        @foreach (['Sen' => 1, 'Sel' => 2, 'Rab' => 3, 'Kam' => 4, 'Jum' => 5, 'Sab' => 6, 'Min' => 0] as $label => $val)
+                        @foreach (['Sen' => 1, 'Sel' => 2, 'Rab' => 3, 'Kam' => 4, 'Jum' => 5, 'Sab' => 6, 'Min' => 7] as $label => $val)
                             <label class="cursor-pointer">
                                 <input type="checkbox" name="operating_days[]" value="{{ $val }}"
-                                       {{ in_array($val, [1,2,3,4,5,6]) ? 'checked' : '' }}
+                                       {{ in_array($val, $selectedDays) ? 'checked' : '' }}
                                        class="sr-only peer">
                                 <div class="w-11 h-9 flex items-center justify-center rounded-md border border-rule
                                             text-xs font-semibold text-ink-700/50
@@ -77,33 +88,15 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-field">
                         <label class="form-label form-required">Maks. Durasi Sesi (jam)</label>
-                        <input type="number" name="max_session_hours" value="4" min="1" max="8"
+                        <input type="number" name="max_session_hours" value="{{ old('max_session_hours', $settings['max_session_hours']) }}" min="1" max="8"
                                class="form-input font-mono" required>
                         <p class="form-hint">Durasi maksimum per permintaan reservasi.</p>
                     </div>
                     <div class="form-field">
                         <label class="form-label form-required">Buffer Antar Sesi (menit)</label>
-                        <input type="number" name="buffer_minutes" value="15" min="0" max="60" step="5"
+                        <input type="number" name="buffer_minutes" value="{{ old('buffer_minutes', $settings['buffer_minutes']) }}" min="0" max="60" step="5"
                                class="form-input font-mono" required>
                         <p class="form-hint">Jeda wajib antara dua sesi berturutan.</p>
-                    </div>
-                </div>
-            </x-section>
-
-            <x-section label="Google Calendar">
-                <div class="space-y-4">
-                    <div class="form-field">
-                        <label class="form-label">Calendar ID</label>
-                        <input type="text" name="google_calendar_id"
-                               value="lab401@group.calendar.google.com"
-                               class="form-input font-mono text-xs">
-                        <p class="form-hint">ID kalender Google yang digunakan untuk sinkronisasi event.</p>
-                    </div>
-                    <div class="p-3 rounded-lg bg-ink-50 border border-rule flex items-center gap-2.5">
-                        <svg class="w-4 h-4 text-status-approved shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span class="text-xs text-ink-700/70">Service Account terhubung · credentials.json valid</span>
                     </div>
                 </div>
             </x-section>

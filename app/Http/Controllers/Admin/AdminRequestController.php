@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\BookingConflictException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RejectRequestRequest;
-use App\Models\AuditLog;
 use App\Models\Booking;
+use App\Services\AuditLogService;
 use App\Services\BookingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -119,16 +119,7 @@ class AdminRequestController extends Controller
                 ]);
 
                 // C7 fix: use the actual previous status, not a hardcoded 'submitted'.
-                AuditLog::create([
-                    'user_id'        => auth()->id(),
-                    'action'         => 'booking.approved',
-                    'auditable_type' => Booking::class,
-                    'auditable_id'   => $booking->id,
-                    'old_values'     => ['status' => $oldStatus],
-                    'new_values'     => ['status' => 'approved'],
-                    'ip_address'     => request()->ip(),
-                    'user_agent'     => request()->userAgent(),
-                ]);
+                AuditLogService::record('booking.approved', $booking, ['status' => $oldStatus], ['status' => 'approved']);
 
                 // Auto-reject pending requests that conflict with this newly-approved booking.
                 // MUST run inside this transaction so approve + auto-reject are atomic.
@@ -159,16 +150,7 @@ class AdminRequestController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        AuditLog::create([
-            'user_id'        => auth()->id(),
-            'action'         => 'booking.rejected',
-            'auditable_type' => Booking::class,
-            'auditable_id'   => $booking->id,
-            'old_values'     => ['status' => $oldStatus],
-            'new_values'     => ['status' => 'rejected', 'admin_notes' => $request->admin_notes],
-            'ip_address'     => request()->ip(),
-            'user_agent'     => request()->userAgent(),
-        ]);
+        AuditLogService::record('booking.rejected', $booking, ['status' => $oldStatus], ['status' => 'rejected', 'admin_notes' => $request->admin_notes]);
 
         return redirect()->route('admin.requests.index')
             ->with('success', 'Reservasi ' . $booking->booking_code . ' telah ditolak.');
@@ -184,16 +166,7 @@ class AdminRequestController extends Controller
 
         $booking->update(['status' => 'completed']);
 
-        AuditLog::create([
-            'user_id'        => auth()->id(),
-            'action'         => 'booking.completed',
-            'auditable_type' => Booking::class,
-            'auditable_id'   => $booking->id,
-            'old_values'     => ['status' => 'approved'],
-            'new_values'     => ['status' => 'completed'],
-            'ip_address'     => request()->ip(),
-            'user_agent'     => request()->userAgent(),
-        ]);
+        AuditLogService::record('booking.completed', $booking, ['status' => 'approved'], ['status' => 'completed']);
 
         return back()->with('success', 'Reservasi ' . $booking->booking_code . ' ditandai selesai.');
     }

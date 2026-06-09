@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ComputerStatusRequest;
-use App\Models\AuditLog;
 use App\Models\Computer;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -60,16 +60,12 @@ class AdminComputerController extends Controller
         }
 
         if (! empty($changedFields)) {
-            AuditLog::create([
-                'user_id'        => auth()->id(),
-                'action'         => 'computer.status_changed',
-                'auditable_type' => Computer::class,
-                'auditable_id'   => $computer->id,
-                'old_values'     => $changedFields['old'] ?? [],
-                'new_values'     => $changedFields['new'] ?? [],
-                'ip_address'     => request()->ip(),
-                'user_agent'     => request()->userAgent(),
-            ]);
+            AuditLogService::record(
+                'computer.status_changed',
+                $computer,
+                $changedFields['old'] ?? [],
+                $changedFields['new'] ?? [],
+            );
         }
 
         $msg = $oldStatus !== $newStatus

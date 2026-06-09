@@ -26,6 +26,16 @@
 .wcal-newbtn:hover { filter:brightness(1.04); }
 .wcal-newbtn:active { transform:translateY(1px); }
 .wcal-newbtn svg { stroke:currentColor; fill:none; stroke-width:2.4; stroke-linecap:round; }
+.wcal-cancelbtn { height:34px; padding:0 15px; display:flex; align-items:center; gap:7px; background:#fff; color:#0A1A47; border:1px solid rgba(15,36,96,.18); border-radius:9px; font-size:13px; font-weight:600; white-space:nowrap; transition:background .12s,border-color .12s; }
+.wcal-cancelbtn:hover { background:#FAFAF7; border-color:rgba(15,36,96,.3); }
+
+/* ── Booking mode — events become bare, click-through colored blocks so the drag
+      surface is clear (cards no longer intercept the mousedown). ─────────────── */
+.wcal-booking-mode .wcal-ev { pointer-events:none; cursor:default; opacity:.92; }
+.wcal-booking-mode .wcal-ev > div { display:none; }            /* hide all card text */
+.wcal-booking-mode .wcal-ev.is-selected { box-shadow:none; }
+.wcal-booking-mode .wcal-ev.is-pending::after { display:none; } /* drop the stripe for a clean block */
+.wcal-booking-mode .wcal-col.is-bookable { cursor:crosshair; }
 
 /* Legend */
 .wcal-legend { display:flex; align-items:center; gap:16px; padding:8px 16px; border-bottom:1px solid rgba(15,36,96,.08); flex-wrap:wrap; }
@@ -202,9 +212,15 @@
                     <button :class="{ active: view==='week' }" @click="setView('week')">Minggu</button>
                     <button :class="{ active: view==='day' }" @click="setView('day')">Hari</button>
                 </div>
-                <button class="wcal-newbtn" @click="newBookingDefault($event)">
+                {{-- View mode → enter booking (drag) mode --}}
+                <button class="wcal-newbtn" x-show="!bookingMode" @click="enterBookingMode()">
                     <svg width="15" height="15" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Buat Reservasi
+                </button>
+                {{-- Booking mode → cancel back to view --}}
+                <button class="wcal-cancelbtn" x-show="bookingMode" x-cloak @click="exitBookingMode()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Batal
                 </button>
             </div>
 
@@ -232,7 +248,7 @@
                 </div>
 
                 {{-- Canvas --}}
-                <div class="wcal-canvas" :style="{ height: canvasH + 'px' }">
+                <div class="wcal-canvas" :class="{ 'wcal-booking-mode': bookingMode }" :style="{ height: canvasH + 'px' }">
 
                     {{-- Hour gutter --}}
                     <div class="wcal-gutter">
@@ -364,7 +380,7 @@
                         <div>
                             <label class="wcal-lbl">Penggunaan Ruang</label>
                             <div class="wcal-submode">
-                                <button type="button" :class="{ on: creating.roomMode === 'sharing' }" @click="creating.roomMode = 'sharing'">Berbagi</button>
+                                <button type="button" :class="{ on: creating.roomMode === 'shared' }" @click="creating.roomMode = 'shared'">Berbagi</button>
                                 <button type="button" :class="{ on: creating.roomMode === 'exclusive' }" :disabled="roomModeDisabled('exclusive')" @click="!roomModeDisabled('exclusive') && (creating.roomMode = 'exclusive')">Eksklusif</button>
                             </div>
                         </div>
@@ -567,6 +583,7 @@ function weekCal() {
         groupPop: null,
         block: null,
         selectedEvId: null,
+        bookingMode: false,   // false = view (detail cards) · true = drag-to-book (bare blocks)
 
         // ── inline booking form state (popover) ──
         reason: '',
@@ -770,14 +787,13 @@ function weekCal() {
             window.addEventListener('mouseup', onUp);
         },
 
-        newBookingDefault(e) {
-            const today = this.days.find(d => d.isToday && d.bookable);
-            const day = today || this.days.find(d => d.bookable);
-            if (!day) return;
-            const start = Math.max(this.rangeStart * 60, snap(this.nowMin, 30));
-            const safeStart = Math.min(start, this.rangeEnd * 60 - 60);
-            const r = e.currentTarget.getBoundingClientRect();
-            this.openCreate(day, safeStart, safeStart + 60, { x: r.left, y: r.bottom + 6 });
+        enterBookingMode() {
+            this.closeAll();         // clear any open detail/group/create popover + selection + block
+            this.bookingMode = true;
+        },
+        exitBookingMode() {
+            this.closeAll();
+            this.bookingMode = false;
         },
 
         // ── slot restrictions (mirrors EC-C/EC-H) ──
@@ -829,7 +845,7 @@ function weekCal() {
                 dateKey: day.key, dateLabel: this.dateLabelOf(day.key),
                 start, end,
                 hardBlocked: r.hardBlocked, sharedRoom: r.sharedRoom, computerBooked: r.computerBooked,
-                loanType, roomMode: r.computerBooked ? 'sharing' : 'exclusive',
+                loanType, roomMode: r.computerBooked ? 'shared' : 'exclusive',
                 pos: this.popPos(anchorPt, 330, 540),
             };
             this.fetchPcAvail();
@@ -929,7 +945,7 @@ function weekCal() {
             if (this.typeDisabled(key)) return;
             this.creating.loanType = key;
             if (key === 'room_only' && this.roomModeDisabled(this.creating.roomMode)) {
-                this.creating.roomMode = 'sharing';
+                this.creating.roomMode = 'shared';
             }
         },
         onItemClick(item, e) {

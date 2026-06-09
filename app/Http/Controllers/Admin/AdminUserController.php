@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
-use App\Models\AuditLog;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -61,21 +61,12 @@ class AdminUserController extends Controller
                 'is_active'        => $request->boolean('is_active', true),
             ]);
 
-            AuditLog::create([
-                'user_id'        => auth()->id(),
-                'action'         => 'user.created',
-                'auditable_type' => User::class,
-                'auditable_id'   => $user->id,
-                'old_values'     => [],
-                'new_values'     => [
-                    'name'             => $user->name,
-                    'email'            => $user->email,
-                    'role'             => $user->role,
-                    'study_program_id' => $user->study_program_id,
-                    'is_active'        => $user->is_active,
-                ],
-                'ip_address'     => request()->ip(),
-                'user_agent'     => request()->userAgent(),
+            AuditLogService::record('user.created', $user, [], [
+                'name'             => $user->name,
+                'email'            => $user->email,
+                'role'             => $user->role,
+                'study_program_id' => $user->study_program_id,
+                'is_active'        => $user->is_active,
             ]);
 
             return $user;
@@ -116,16 +107,7 @@ class AdminUserController extends Controller
             $newValues['password'] = '[changed]';
         }
 
-        AuditLog::create([
-            'user_id'        => auth()->id(),
-            'action'         => 'user.updated',
-            'auditable_type' => User::class,
-            'auditable_id'   => $user->id,
-            'old_values'     => $oldValues,
-            'new_values'     => $newValues,
-            'ip_address'     => request()->ip(),
-            'user_agent'     => request()->userAgent(),
-        ]);
+        AuditLogService::record('user.updated', $user, $oldValues, $newValues);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'Data ' . $user->name . ' diperbarui.');

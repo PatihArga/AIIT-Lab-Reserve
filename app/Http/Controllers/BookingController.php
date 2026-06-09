@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -92,7 +93,10 @@ class BookingController extends Controller
         abort_if($booking->user_id !== auth()->id(), 403);
         abort_if(! $booking->isCancellable(), 422, 'Reservasi tidak dapat dibatalkan.');
 
+        $oldStatus = $booking->status;
         $booking->update(['status' => 'cancelled']);
+
+        AuditLogService::record('booking.cancelled', $booking, ['status' => $oldStatus], ['status' => 'cancelled']);
 
         return redirect()
             ->route('booking.show', $booking)

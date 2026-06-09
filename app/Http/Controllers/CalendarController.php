@@ -6,6 +6,7 @@ use App\Exceptions\BookingConflictException;
 use App\Models\Booking;
 use App\Models\Computer;
 use App\Models\LabSetting;
+use App\Services\AuditLogService;
 use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -123,6 +124,8 @@ class CalendarController extends Controller
             'end_time.after'           => 'Waktu selesai harus setelah waktu mulai.',
             'computers.required_if'    => 'Pilih unit komputer.',
             'room_sharing.required_if' => 'Pilih mode penggunaan ruang (Eksklusif atau Berbagi).',
+            'room_sharing.in'          => 'Mode penggunaan ruang tidak valid (Eksklusif atau Berbagi).',
+            'booking_type.in'          => 'Tipe reservasi tidak valid.',
             'reason.required'          => 'Alasan / tujuan reservasi wajib diisi.',
             'reason.min'               => 'Alasan minimal 3 karakter.',
         ]);
@@ -171,6 +174,11 @@ class CalendarController extends Controller
         } catch (BookingConflictException $e) {
             return back()->with('error', $e->getMessage());
         }
+
+        AuditLogService::record('booking.submitted', $booking, [], [
+            'status'       => 'submitted',
+            'booking_type' => $booking->booking_type,
+        ]);
 
         return redirect()
             ->route('booking.show', $booking)

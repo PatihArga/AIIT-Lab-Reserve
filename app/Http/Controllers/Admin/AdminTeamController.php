@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreTeamRequest;
 use App\Http\Requests\Admin\UpdateTeamRequest;
-use App\Models\AuditLog;
 use App\Models\StudyProgram;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -63,21 +63,12 @@ class AdminTeamController extends Controller
                 ]);
             }
 
-            AuditLog::create([
-                'user_id'        => auth()->id(),
-                'action'         => 'team.created',
-                'auditable_type' => Team::class,
-                'auditable_id'   => $team->id,
-                'old_values'     => [],
-                'new_values'     => [
-                    'name'             => $team->name,
-                    'email'            => $user->email,
-                    'pic_lecturer_id'  => $team->pic_lecturer_id,
-                    'study_program_id' => $team->study_program_id,
-                    'member_count'     => $members->count(),
-                ],
-                'ip_address'     => request()->ip(),
-                'user_agent'     => request()->userAgent(),
+            AuditLogService::record('team.created', $team, [], [
+                'name'             => $team->name,
+                'email'            => $user->email,
+                'pic_lecturer_id'  => $team->pic_lecturer_id,
+                'study_program_id' => $team->study_program_id,
+                'member_count'     => $members->count(),
             ]);
 
             return $team;
@@ -150,22 +141,13 @@ class AdminTeamController extends Controller
             }
         });
 
-        AuditLog::create([
-            'user_id'        => auth()->id(),
-            'action'         => 'team.updated',
-            'auditable_type' => Team::class,
-            'auditable_id'   => $team->id,
-            'old_values'     => $oldValues,
-            'new_values'     => [
-                'name'             => $team->fresh()->name,
-                'email'            => $request->email,
-                'pic_lecturer_id'  => $request->pic_user_id,
-                'study_program_id' => $request->study_program_id,
-                'is_active'        => $request->boolean('is_active', true),
-                'member_count'     => $members->count(),
-            ],
-            'ip_address'     => request()->ip(),
-            'user_agent'     => request()->userAgent(),
+        AuditLogService::record('team.updated', $team, $oldValues, [
+            'name'             => $team->fresh()->name,
+            'email'            => $request->email,
+            'pic_lecturer_id'  => $request->pic_user_id,
+            'study_program_id' => $request->study_program_id,
+            'is_active'        => $request->boolean('is_active', true),
+            'member_count'     => $members->count(),
         ]);
 
         return redirect()->route('admin.users.index')

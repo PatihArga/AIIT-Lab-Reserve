@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminComputerController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminRequestController;
+use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminTeamController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Api\AvailabilityController;
@@ -68,8 +70,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         // Phase 8 (still closures — reports, audit log, settings)
         Route::get('/reports', fn() => view('admin.reports.index'))->name('reports.index');
-        Route::get('/audit-log', fn() => view('admin.audit-log.index'))->name('audit-log.index');
-        Route::get('/settings', fn() => view('admin.settings.index'))->name('settings.index');
+        Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit-log.index');
+        Route::get('/settings',  [AdminSettingsController::class, 'index'])->name('settings.index');
+        Route::put('/settings',  [AdminSettingsController::class, 'update'])->name('settings.update');
     });
 });
 
