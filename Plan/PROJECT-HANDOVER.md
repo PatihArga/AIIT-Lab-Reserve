@@ -1,6 +1,6 @@
 # UKRIDA Lab Reserve — Project Handover Document
 
-**Last Updated:** 26 May 2026  
+**Last Updated:** 10 June 2026  
 **Project:** UKRIDA Lab Reserve — Computer Laboratory Booking System  
 **Stack:** Laravel 12 · MySQL · Blade · Alpine.js · Tailwind CSS v3  
 **Environment:** XAMPP (Windows) · PHP 8.x · Node.js  
@@ -23,7 +23,7 @@ A web-based computer laboratory reservation system for Universitas Kristen Krida
 - Full audit log written on every state-changing action
 - Google Calendar sync (planned — Phase 7)
 - Email notifications (planned — Phase 7)
-- Usage reports and analytics (planned — Phase 8)
+- Usage reports and analytics with real aggregates (Phase 8 — ✅ done)
 
 ### Roles
 
@@ -77,6 +77,11 @@ A web-based computer laboratory reservation system for Universitas Kristen Krida
 | `resources/css/app.css` | Tailwind config + all CSS custom properties / design tokens |
 | `resources/views/components/` | All reusable Blade components |
 | `resources/views/layouts/app.blade.php` | Main app shell (sidebar + topbar) |
+| `app/Services/AuditLogService.php` | Centralized audit-log writer — replaces inline `AuditLog::create()` boilerplate |
+| `app/Services/ReportService.php` | Report aggregation service — range-aware metrics for the admin reports page |
+| `app/Http/Controllers/Admin/AdminReportController.php` | Admin reports page — date-range parsing + delegates to `ReportService` |
+| `app/Http/Controllers/Admin/AdminAuditLogController.php` | Admin audit log — real paginated/filtered data from `audit_logs` table |
+| `app/Http/Controllers/Admin/AdminSettingsController.php` | Admin settings — read/write `lab_settings` table |
 | `database/seeders/` | Seeder files for admin, computers, study programs, lab settings |
 
 ---
@@ -410,9 +415,14 @@ These bugs were identified through manual testing and fixed during active develo
 
 ## 6. What to Build Next (Recommended Order)
 
-1. **Phase 7 — Email + Google Calendar** — users expect notifications after submission, approval, and rejection. Requires SMTP `.env` keys and a Google service account JSON file. Now that the auth rework is done, the admin's `users.gmail` is the natural sender identity for system mails.
+1. **Phase 8 — Reports, Audit Log UI, Settings backend** — ✅ **DONE (10 June 2026).** All 4 sub-features completed:
+   - Step 1: `AuditLogService` (central writer + nullable migration + refactored 5 call sites + added `booking.submitted` / `booking.cancelled`)
+   - Step 2: Settings page (real `lab_settings` read/write, GCal section removed)
+   - Step 3: Audit Log page (real paginated/filtered data, "Ekspor Log" button removed)
+   - Step 4: Reports page (`ReportService` with real aggregates, range-aware, CSS-bar visuals, "Ekspor Excel/PDF" buttons removed)
+   - Plan: `Plan/Phase-8/PLAN-PHASE-8.md`
 
-2. **Phase 8 — Reports, Audit Log UI, Settings backend** — admin pages currently show hardcoded data.
+2. **Phase 7 — Email + Google Calendar** — users expect notifications after submission, approval, and rejection. Requires SMTP `.env` keys and a Google service account JSON file. Now that the auth rework is done, the admin's `users.gmail` is the natural sender identity for system mails.
 
 3. **Phase 9 — Testing + Policies** — add `Booking` and `User` policies to prevent cross-user access; add feature tests for the conflict detection and approval flow. Auth tests should cover the three Gmail rejection paths: wrong program Gmail, admin Gmail at `/login`, lecturer Gmail at `/admin/login`.
 
@@ -424,7 +434,6 @@ These bugs were identified through manual testing and fixed during active develo
 
 | Issue | Location | Notes |
 |-------|----------|-------|
-| Reports, Audit Log UI, Settings pages show hardcoded data | `admin/reports`, `admin/audit-log`, `admin/settings` | Phase 8 work. |
 | No email notifications on booking state changes | — | Phase 7 work. Approve/reject currently silent. |
 | No Google Calendar integration | — | Phase 7 work. |
 | No authorization Policy classes | `app/Policies/` (missing) | A user can theoretically GET any `/booking/{id}` URL if they guess the ID. Gate with a `BookingPolicy` in Phase 9. |
