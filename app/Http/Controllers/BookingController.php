@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Computer;
+use App\Models\LabSetting;
 use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -51,8 +53,20 @@ class BookingController extends Controller
             ),
         ];
 
+        // Lab settings for the right-panel info card
+        $labSettings = [
+            'operating_start'  => LabSetting::get('operating_start', '08:00'),
+            'operating_end'    => LabSetting::get('operating_end', '22:00'),
+            'operating_days'   => LabSetting::get('operating_days', '1,2,3,4,5,6'),
+            'max_session_hours'=> LabSetting::get('max_session_hours', '4'),
+            'buffer_minutes'   => LabSetting::get('buffer_minutes', '15'),
+        ];
+
+        // Computer status for the right-panel dots
+        $computers = Computer::orderBy('unit_number')->get(['id', 'label', 'status']);
+
         return view('dashboard', compact(
-            'upcomingBookings', 'completedBookings', 'stats'
+            'upcomingBookings', 'completedBookings', 'stats', 'labSettings', 'computers'
         ));
     }
 

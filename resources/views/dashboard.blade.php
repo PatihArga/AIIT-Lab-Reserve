@@ -196,37 +196,74 @@
 
         {{-- Right panel: lab hours + status --}}
         <div class="bg-white border border-rule rounded-xl shadow-card order-1 lg:order-2">
+            @php
+                // Parse operating days CSV into an array of day-of-week ints
+                $opDays     = array_map('intval', explode(',', $labSettings['operating_days']));
+                $dayLabels  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+                // Group consecutive days into ranges for compact display
+                // e.g. [1,2,3,4,5,6] → "Senin — Sabtu", [1,3,5] → "Senin, Rabu, Jumat"
+                sort($opDays);
+                $ranges = [];
+                $i = 0;
+                while ($i < count($opDays)) {
+                    $start = $opDays[$i];
+                    $end   = $start;
+                    while ($i + 1 < count($opDays) && $opDays[$i + 1] === $end + 1) {
+                        $end = $opDays[++$i];
+                    }
+                    if ($end - $start >= 1) {
+                        $ranges[] = $dayLabels[$start] . ' — ' . $dayLabels[$end];
+                    } else {
+                        $ranges[] = $dayLabels[$start];
+                    }
+                    $i++;
+                }
+                $opDaysLabel = implode(', ', $ranges);
+
+                // Days that are NOT operating (closed)
+                $closedDays = array_diff(range(0, 6), $opDays);
+                $closedLabels = array_map(fn ($d) => $dayLabels[$d], $closedDays);
+
+                // Computer counts
+                $onlineCount = $computers->where('status', 'online')->count();
+                $totalCount  = $computers->count();
+                $maintCount  = $computers->where('status', '!=', 'online')->count();
+                $maintLabels = $computers->where('status', '!=', 'online')->pluck('label')->toArray();
+            @endphp
             <div class="r-panel-section">
                 <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-3.5">Jam Operasional Lab</div>
                 <div class="hours-row">
-                    <span class="text-[12.5px] text-ink-700/55 font-medium">Senin &#8212; Sabtu</span>
-                    <span class="font-mono text-[12.5px] font-semibold text-ink-900">08:00 &#8211; 22:00</span>
+                    <span class="text-[12.5px] text-ink-700/55 font-medium">{{ $opDaysLabel }}</span>
+                    <span class="font-mono text-[12.5px] font-semibold text-ink-900">{{ $labSettings['operating_start'] }} &#8211; {{ $labSettings['operating_end'] }}</span>
                 </div>
-                <div class="hours-row">
-                    <span class="text-[12.5px] text-ink-700/55 font-medium">Minggu</span>
-                    <span class="text-[12px] text-ink-700/35 font-medium">Tutup</span>
-                </div>
+                @if (count($closedDays) > 0)
+                    <div class="hours-row">
+                        <span class="text-[12.5px] text-ink-700/55 font-medium">{{ implode(', ', $closedLabels) }}</span>
+                        <span class="text-[12px] text-ink-700/35 font-medium">Tutup</span>
+                    </div>
+                @endif
                 <div class="mt-3.5 pt-3 border-t border-rule">
                     <div class="meta-row">
                         <span class="text-xs text-ink-700/40">Durasi maks.</span>
-                        <span class="font-mono text-xs font-semibold text-ink-900">4 jam / sesi</span>
+                        <span class="font-mono text-xs font-semibold text-ink-900">{{ $labSettings['max_session_hours'] }} jam / sesi</span>
                     </div>
                     <div class="meta-row">
                         <span class="text-xs text-ink-700/40">Buffer antar sesi</span>
-                        <span class="font-mono text-xs font-semibold text-ink-900">15 menit</span>
+                        <span class="font-mono text-xs font-semibold text-ink-900">{{ $labSettings['buffer_minutes'] }} menit</span>
                     </div>
                 </div>
             </div>
             <div class="r-panel-section">
                 <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-3">Status Lab</div>
                 <div class="flex items-baseline gap-1 mb-2.5">
-                    <span class="font-mono text-[28px] font-bold text-ink-900 leading-none tracking-tight">8</span>
-                    <span class="text-sm text-ink-700/40 font-medium">/ 9 unit tersedia</span>
+                    <span class="font-mono text-[28px] font-bold text-ink-900 leading-none tracking-tight">{{ $onlineCount }}</span>
+                    <span class="text-sm text-ink-700/40 font-medium">/ {{ $totalCount }} unit tersedia</span>
                 </div>
                 <div class="pc-dot-row">
-                    <div class="pc-dot"></div><div class="pc-dot"></div><div class="pc-dot"></div>
-                    <div class="pc-dot"></div><div class="pc-dot"></div><div class="pc-dot"></div>
-                    <div class="pc-dot"></div><div class="pc-dot"></div><div class="pc-dot mt"></div>
+                    @foreach ($computers as $pc)
+                        <div class="pc-dot{{ $pc->status !== 'online' ? ' mt' : '' }}" title="{{ $pc->label }}: {{ $pc->status === 'online' ? 'Tersedia' : ucfirst($pc->status) }}"></div>
+                    @endforeach
                 </div>
                 <div class="flex gap-3 mb-2">
                     <div class="flex items-center gap-1.5 text-[11px] text-ink-700/40">
@@ -236,7 +273,11 @@
                         <div class="w-2 h-2 rounded-sm bg-mark-500"></div> Perawatan
                     </div>
                 </div>
-                <p class="text-[11.5px] text-ink-700/40 leading-relaxed">1 unit dalam pemeliharaan terjadwal hingga Senin, 11 Mei.</p>
+                @if ($maintCount > 0)
+                    <p class="text-[11.5px] text-ink-700/40 leading-relaxed">{{ $maintCount }} unit dalam pemeliharaan: {{ implode(', ', $maintLabels) }}.</p>
+                @else
+                    <p class="text-[11.5px] text-ink-700/40 leading-relaxed">Semua unit beroperasi normal.</p>
+                @endif
             </div>
         </div>
 

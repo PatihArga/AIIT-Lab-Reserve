@@ -30,7 +30,7 @@
                         <input type="email" name="email" value="{{ old('email') }}"
                                class="form-input @error('email') border-status-rejected @enderror"
                                placeholder="nama@ukrida.ac.id" required>
-                        <p class="form-hint">Email harus unik dan akan digunakan sebagai login.</p>
+                        <p class="form-hint">Email harus unik sebagai identitas akun. Login dosen dilakukan melalui Gmail program studi.</p>
                         @error('email') <p class="text-xs text-status-rejected mt-1">{{ $message }}</p> @enderror
                     </div>
 
@@ -44,20 +44,6 @@
                             @endforeach
                         </select>
                         @error('study_program_id') <p class="text-xs text-status-rejected mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-label form-required">Password Awal</label>
-                        <input type="password" name="password"
-                               class="form-input @error('password') border-status-rejected @enderror"
-                               placeholder="Minimal 8 karakter" required>
-                        <p class="form-hint">Dosen dapat mengubah password setelah login pertama kali.</p>
-                        @error('password') <p class="text-xs text-status-rejected mt-1">{{ $message }}</p> @enderror
-                    </div>
-
-                    <div class="form-field">
-                        <label class="form-label form-required">Konfirmasi Password</label>
-                        <input type="password" name="password_confirmation" class="form-input" required>
                     </div>
 
                     <label class="flex items-center gap-3 p-3 rounded-lg border border-rule bg-white cursor-pointer hover:bg-ink-50/50 has-[:checked]:border-ink-700 has-[:checked]:bg-ink-50/40 transition-all">

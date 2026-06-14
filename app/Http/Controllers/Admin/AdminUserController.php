@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminUserController extends Controller
@@ -55,7 +56,9 @@ class AdminUserController extends Controller
             $user = User::create([
                 'name'             => $request->name,
                 'email'            => $request->email,
-                'password'         => Hash::make($request->password),
+                // Lecturers authenticate via the study-program flow (no per-user password),
+                // but users.password is NOT NULL — store an unusable random hash.
+                'password'         => Hash::make(Str::random(40)),
                 'role'             => 'lecturer',
                 'study_program_id' => $request->study_program_id,
                 'is_active'        => $request->boolean('is_active', true),

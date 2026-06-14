@@ -87,7 +87,9 @@ class AdminRequestController extends Controller
         );
 
         // S8 — guard against approving past-date bookings.
-        if ($booking->date->isPast()) {
+        // Note: $booking->date is cast as 'date' (midnight), so isPast() would block
+        // same-day bookings after midnight. Use lt(today()) to only block genuinely past dates.
+        if ($booking->date->lt(today())) {
             return back()->with('error', 'Tidak dapat menyetujui reservasi di tanggal lampau.');
         }
 

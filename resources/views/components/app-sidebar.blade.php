@@ -57,7 +57,10 @@
                class="nav-item {{ str_starts_with($current, 'admin.requests') ? 'active' : '' }}">
                 <svg class="nav-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>Permintaan</span>
-                <span class="ml-auto font-mono text-xs px-1.5 py-0.5 rounded bg-mark-500 text-ink-900 font-semibold">3</span>
+                @php $pendingCount = \App\Models\Booking::whereIn('status', ['submitted', 'under_review'])->count(); @endphp
+                @if ($pendingCount > 0)
+                    <span class="ml-auto font-mono text-xs px-1.5 py-0.5 rounded bg-mark-500 text-ink-900 font-semibold">{{ $pendingCount }}</span>
+                @endif
             </a>
             <a href="{{ route('admin.computers.index') }}"
                class="nav-item {{ str_starts_with($current, 'admin.computers') ? 'active' : '' }}">

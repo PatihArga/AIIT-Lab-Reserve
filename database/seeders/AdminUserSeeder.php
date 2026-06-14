@@ -17,7 +17,6 @@ class AdminUserSeeder extends Seeder
                 'study_program_id' => null,
                 'name'      => 'Administrator',
                 'password'  => Hash::make('Admin@123'),
-                'gmail'     => 'admin.ukrida@gmail.com',
                 'role'      => 'admin',
                 'is_active' => true,
             ]

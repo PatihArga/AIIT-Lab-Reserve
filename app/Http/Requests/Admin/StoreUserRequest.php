@@ -17,7 +17,6 @@ class StoreUserRequest extends FormRequest
             'name'             => ['required', 'string', 'max:255'],
             'email'            => ['required', 'email', 'max:255', 'unique:users,email'],
             'study_program_id' => ['required', 'integer', 'exists:study_programs,id'],
-            'password'         => ['required', 'string', 'min:8', 'confirmed'],
             'is_active'        => ['nullable'],
         ];
     }
@@ -26,7 +25,6 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'email.unique'              => 'Email sudah terdaftar.',
-            'password.confirmed'        => 'Konfirmasi kata sandi tidak cocok.',
             'study_program_id.exists'   => 'Program studi tidak valid.',
         ];
     }

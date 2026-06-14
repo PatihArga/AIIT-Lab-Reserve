@@ -144,17 +144,17 @@ class AuthenticatedSessionController extends Controller
     public function adminAuthenticate(Request $request): RedirectResponse
     {
         $request->validate([
-            'gmail'    => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
         ], [
-            'gmail.required'    => 'Gmail wajib diisi.',
-            'gmail.email'       => 'Format Gmail tidak valid.',
+            'email.required'    => 'Email wajib diisi.',
+            'email.email'       => 'Format email tidak valid.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         $this->ensureIsNotRateLimitedByEmail($request);
 
-        $admin = User::where('gmail', $request->input('gmail'))
+        $admin = User::where('email', $request->input('email'))
             ->where('role', 'admin')
             ->first();
 
@@ -162,13 +162,13 @@ class AuthenticatedSessionController extends Controller
             RateLimiter::hit($this->throttleKeyByEmail($request));
 
             throw ValidationException::withMessages([
-                'gmail' => 'Gmail atau kata sandi tidak cocok.',
+                'email' => 'Email atau kata sandi tidak cocok.',
             ]);
         }
 
         if (! $admin->is_active) {
             throw ValidationException::withMessages([
-                'gmail' => 'Akun admin nonaktif.',
+                'email' => 'Akun admin nonaktif.',
             ]);
         }
 
@@ -221,7 +221,7 @@ class AuthenticatedSessionController extends Controller
 
     protected function throttleKeyByEmail(Request $request): string
     {
-        $key = $request->input('gmail') ?? $request->input('email', '');
+        $key = (string) $request->input('email', '');
         return Str::transliterate(Str::lower($key) . '|' . $request->ip());
     }
 }
