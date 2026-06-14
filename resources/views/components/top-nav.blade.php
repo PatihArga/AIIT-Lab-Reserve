@@ -15,11 +15,13 @@
     $icoDashboard = '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
     $icoCalendar  = '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>';
     $icoHistory   = '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    $icoBook      = '<svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
 
     $links = [
         ['label' => 'Dashboard', 'route' => 'dashboard',       'icon' => $icoDashboard, 'active' => $current === 'dashboard'],
         ['label' => 'Kalender',  'route' => 'calendar.index',  'icon' => $icoCalendar,  'active' => $current === 'calendar.index'],
         ['label' => 'Riwayat',   'route' => 'booking.history', 'icon' => $icoHistory,   'active' => in_array($current, ['booking.history', 'booking.show'], true)],
+        ['label' => 'Logbook',   'route' => 'logbook.index',   'icon' => $icoBook,      'active' => str_starts_with($current, 'logbook')],
     ];
 
     $linkBase = 'inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap';
@@ -33,7 +35,8 @@
 
             {{-- Brand --}}
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 shrink-0">
-                <div class="w-9 h-9 rounded-md bg-mark-500 text-ink-900 flex items-center justify-center font-bold text-sm">LR</div>
+                <img src="{{ asset('images/ukrida_logo.png') }}" alt="UKRIDA" class="h-9 w-auto shrink-0">
+
                 <div class="leading-tight hidden sm:block">
                     <div class="text-[0.6rem] uppercase tracking-label text-mark-500/90 font-semibold leading-none">UKRIDA</div>
                     <div class="text-sm font-semibold tracking-tight mt-0.5">Lab Reserve</div>

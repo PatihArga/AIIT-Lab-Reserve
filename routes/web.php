@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\BookingLogbookController;
+use App\Http\Controllers\LogbookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -35,6 +36,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get ('/booking/{booking}',                [BookingController::class, 'show'])->name('booking.show');
     Route::post('/booking/{booking}/cancel',         [BookingController::class, 'cancel'])->name('booking.cancel');
     Route::put ('/booking/{booking}/logbook',        [BookingLogbookController::class, 'update'])->name('booking.logbook.update');
+
+    // Logbook page — consolidated per-booking notes (approved/completed)
+    Route::get ('/logbook',           [LogbookController::class, 'index'])->name('logbook.index');
+    Route::put ('/logbook/{booking}', [LogbookController::class, 'update'])->name('logbook.update');
 
     // AJAX availability endpoints (session-authenticated, JSON)
     Route::get('/api/check-availability',  [AvailabilityController::class, 'check'])->name('api.availability.check');

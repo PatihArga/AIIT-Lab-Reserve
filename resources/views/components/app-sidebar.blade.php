@@ -33,9 +33,7 @@
 
     {{-- Logo / brand --}}
     <div class="px-6 pt-7 pb-6 flex items-center gap-3 border-b border-white/5">
-        <div class="w-10 h-10 rounded-md bg-mark-500 text-ink-900 flex items-center justify-center font-bold text-base">
-            LR
-        </div>
+        <img src="{{ asset('images/ukrida_logo.png') }}" alt="UKRIDA" class="h-10 w-auto shrink-0">
         <div>
             <div class="text-[0.6rem] uppercase tracking-label text-mark-500/90 font-semibold leading-none">UKRIDA</div>
             <div class="text-sm font-semibold tracking-tight mt-1">Lab Reserve</div>
