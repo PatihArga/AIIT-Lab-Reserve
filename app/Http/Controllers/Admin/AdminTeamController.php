@@ -13,6 +13,7 @@ use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminTeamController extends Controller
@@ -40,7 +41,9 @@ class AdminTeamController extends Controller
             $user = User::create([
                 'name'             => $request->team_name,
                 'email'            => $request->email,
-                'password'         => Hash::make($request->password),
+                // Teams authenticate via the study-program flow (no per-account password),
+                // but users.password is NOT NULL — store an unusable random hash.
+                'password'         => Hash::make(Str::random(40)),
                 'role'             => 'team',
                 'study_program_id' => $request->study_program_id,
                 'is_active'        => true,

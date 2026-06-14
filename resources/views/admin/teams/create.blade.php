@@ -75,20 +75,6 @@
                         @error('pic_user_id') <p class="text-xs text-status-rejected mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="form-field">
-                            <label class="form-label form-required">Password</label>
-                            <input type="password" name="password"
-                                   class="form-input @error('password') border-status-rejected @enderror"
-                                   placeholder="Minimal 8 karakter" required>
-                            @error('password') <p class="text-xs text-status-rejected mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label form-required">Konfirmasi</label>
-                            <input type="password" name="password_confirmation" class="form-input" required>
-                        </div>
-                    </div>
-
                 </div>
             </x-section>
 

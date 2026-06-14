@@ -22,7 +22,6 @@ class StoreTeamRequest extends FormRequest
                 'required',
                 Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'lecturer')->where('is_active', true)),
             ],
-            'password'         => ['required', 'string', 'min:8', 'confirmed'],
             'description'      => ['nullable', 'string', 'max:500'],
             'members'          => ['nullable', 'array'],
             // Each member is only valid when BOTH name and NIM are provided; blank rows are filtered out in the controller.
@@ -36,7 +35,6 @@ class StoreTeamRequest extends FormRequest
         return [
             'email.unique'              => 'Email sudah terdaftar.',
             'pic_user_id.exists'        => 'Dosen PIC tidak valid atau tidak aktif.',
-            'password.confirmed'        => 'Konfirmasi kata sandi tidak cocok.',
             'members.*.name.required_with' => 'Nama anggota wajib diisi jika NIM diisi.',
             'members.*.nim.required_with'  => 'NIM wajib diisi jika nama anggota diisi.',
         ];
