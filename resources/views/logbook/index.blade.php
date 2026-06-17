@@ -68,8 +68,13 @@
 
                     <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-2.5">Catatan Logbook</div>
 
+                    {{-- Auto-grows to fit its content so long notes don't scroll inside a fixed box --}}
                     <textarea name="checkpoint_progress" rows="4" required
                               class="form-textarea"
+                              style="resize:none; overflow:hidden;"
+                              x-data
+                              x-init="$nextTick(() => { $el.style.height='auto'; $el.style.height=($el.scrollHeight + $el.offsetHeight - $el.clientHeight)+'px'; })"
+                              @input="$el.style.height='auto'; $el.style.height=($el.scrollHeight + $el.offsetHeight - $el.clientHeight)+'px'"
                               placeholder="Tulis catatan kegiatan kamu untuk sesi ini… (min. 10 karakter)">{{ old('checkpoint_progress', $booking->logbook->checkpoint_progress ?? '') }}</textarea>
 
                     <div class="flex items-center justify-end pt-3">

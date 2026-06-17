@@ -24,7 +24,7 @@
         <div class="relative z-10 flex items-center gap-4">
             <img src="{{ asset('images/ukrida_logo.png') }}" alt="UKRIDA Logo" class="h-16 w-auto drop-shadow-lg">
             <div class="border-l border-white/20 pl-4">
-                <div class="text-[0.65rem] uppercase tracking-label text-mark-400 font-bold mb-0.5">UKRIDA</div>
+                <div class="text-[0.65rem] uppercase tracking-label text-mark-400 font-bold mb-0.5">AIIT</div>
                 <div class="text-lg font-semibold tracking-tight text-white/95">Lab Reserve</div>
             </div>
         </div>

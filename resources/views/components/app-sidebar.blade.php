@@ -35,7 +35,7 @@
     <div class="px-6 pt-7 pb-6 flex items-center gap-3 border-b border-white/5">
         <img src="{{ asset('images/ukrida_logo.png') }}" alt="UKRIDA" class="h-10 w-auto shrink-0">
         <div>
-            <div class="text-[0.6rem] uppercase tracking-label text-mark-500/90 font-semibold leading-none">UKRIDA</div>
+            <div class="text-[0.6rem] uppercase tracking-label text-mark-500/90 font-semibold leading-none">AIIT</div>
             <div class="text-sm font-semibold tracking-tight mt-1">Lab Reserve</div>
         </div>
     </div>
