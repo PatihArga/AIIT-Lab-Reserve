@@ -35,7 +35,7 @@
                 Sistem Reservasi
             </div>
             <h1 class="font-display text-[3.25rem] leading-[1.05] font-bold tracking-tight text-white mb-2">
-                Lab Komputer<br>
+                Lab AIIT<br>
                 <span class="text-mark-400">UKRIDA</span>
             </h1>
         </div>
