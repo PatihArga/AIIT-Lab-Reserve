@@ -78,7 +78,7 @@ class AdminRequestController extends Controller
         return view('admin.requests.show', compact('booking', 'hasConflict'));
     }
 
-    public function approve(Booking $booking): RedirectResponse
+    public function approve(Request $request, Booking $booking): RedirectResponse
     {
         abort_if(
             ! in_array($booking->status, ['submitted', 'under_review']),
@@ -86,11 +86,11 @@ class AdminRequestController extends Controller
             'Permintaan ini sudah diproses.'
         );
 
-        // S8 — guard against approving past-date bookings.
-        // Note: $booking->date is cast as 'date' (midnight), so isPast() would block
-        // same-day bookings after midnight. Use lt(today()) to only block genuinely past dates.
-        if ($booking->date->lt(today())) {
-            return back()->with('error', 'Tidak dapat menyetujui reservasi di tanggal lampau.');
+        // S8 — soft guard against approving past-date bookings.
+        // If the date is past and the admin hasn't explicitly confirmed, bounce back
+        // so the frontend can show a confirmation dialog.
+        if ($booking->date->lt(today()) && ! $request->boolean('confirm_past')) {
+            return back()->with('warning_past', true);
         }
 
         $oldStatus = $booking->status;

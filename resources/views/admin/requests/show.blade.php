@@ -201,19 +201,93 @@
             @if ($isPending)
                 {{-- Approve action --}}
                 <x-section label="Setujui">
-                    <p class="text-sm text-ink-700/60 mb-4">
-                        Menyetujui akan mengunci slot dan mencatat tindakan ke audit log.
-                    </p>
-                    <form method="POST" action="{{ route('admin.requests.approve', $booking) }}"
-                          x-data @submit.prevent="if (confirm('Setujui reservasi {{ $booking->booking_code }}?')) $el.submit()">
-                        @csrf
-                        <button type="submit" class="w-full btn-mark justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    @php $isPastDate = $booking->date->lt(today()); @endphp
+
+                    @if ($isPastDate)
+                        {{-- Past-date warning banner --}}
+                        <div class="p-3 rounded-lg bg-mark-500/10 border border-mark-500/30 flex items-start gap-2.5 mb-4">
+                            <svg class="w-4 h-4 text-mark-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-2.99l-6.93-12a2 2 0 00-3.48 0l-6.93 12A2 2 0 005.07 19z"/>
                             </svg>
-                            Setujui Permintaan
-                        </button>
-                    </form>
+                            <div>
+                                <span class="text-sm font-medium text-mark-700">Tanggal reservasi sudah lewat</span>
+                                <p class="text-xs text-mark-600/70 mt-0.5">{{ $booking->date->translatedFormat('d F Y') }} — Anda masih dapat menyetujui dengan konfirmasi.</p>
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-sm text-ink-700/60 mb-4">
+                            Menyetujui akan mengunci slot dan mencatat tindakan ke audit log.
+                        </p>
+                    @endif
+
+                    <div x-data="{ showPastModal: {{ session('warning_past') ? 'true' : 'false' }} }">
+                        {{-- Approve button: past dates open modal, future dates use simple confirm --}}
+                        @if ($isPastDate)
+                            <button type="button" @click="showPastModal = true" class="w-full btn-mark justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Setujui Permintaan
+                            </button>
+                        @else
+                            <form method="POST" action="{{ route('admin.requests.approve', $booking) }}"
+                                  x-data @submit.prevent="if (confirm('Setujui reservasi {{ $booking->booking_code }}?')) $el.submit()">
+                                @csrf
+                                <button type="submit" class="w-full btn-mark justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Setujui Permintaan
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- Past-date confirmation modal --}}
+                        <div x-show="showPastModal" x-transition.opacity
+                             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/50 backdrop-blur-sm"
+                             @keydown.escape.window="showPastModal = false" x-cloak>
+                            <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden"
+                                 @click.outside="showPastModal = false">
+                                {{-- Modal header --}}
+                                <div class="px-6 py-5 bg-mark-500/10 border-b border-mark-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-mark-500/20 flex items-center justify-center shrink-0">
+                                            <svg class="w-5 h-5 text-mark-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-2.99l-6.93-12a2 2 0 00-3.48 0l-6.93 12A2 2 0 005.07 19z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-base font-bold text-ink-900">Konfirmasi Persetujuan</h3>
+                                            <p class="text-xs text-ink-700/50 mt-0.5">{{ $booking->booking_code }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{-- Modal body --}}
+                                <div class="px-6 py-5">
+                                    <p class="text-sm text-ink-700/80 leading-relaxed">
+                                        Tanggal reservasi pengguna (<span class="font-semibold text-ink-900">{{ $booking->date->translatedFormat('d F Y') }}</span>) sudah lewat. Apakah Anda tetap ingin menyetujui?
+                                    </p>
+                                </div>
+                                {{-- Modal actions --}}
+                                <div class="px-6 py-4 bg-ink-50/50 border-t border-rule flex items-center justify-end gap-3">
+                                    <button type="button" @click="showPastModal = false"
+                                            class="btn-ghost btn-sm">
+                                        Batal
+                                    </button>
+                                    <form method="POST" action="{{ route('admin.requests.approve', $booking) }}">
+                                        @csrf
+                                        <input type="hidden" name="confirm_past" value="1">
+                                        <button type="submit" class="btn-mark btn-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Setujui
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </x-section>
 
                 {{-- Reject action --}}
