@@ -1,5 +1,24 @@
 <x-app-layout>
 
+@push('styles')
+<style>
+    @media print {
+        /* Force brand colors, donut strokes and KPI hairlines to print */
+        *, *::before, *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body { background: #fff !important; }
+        @page { margin: 14mm; }
+        /* Keep panels and table rows from splitting across pages */
+        section, .print-kpis { break-inside: avoid; }
+        tr { break-inside: avoid; }
+        /* Flatten shadows for clean paper output */
+        .shadow-card { box-shadow: none !important; }
+    }
+</style>
+@endpush
+
     <x-slot:header>
         <x-page-header
             eyebrow="Manajemen"
@@ -79,7 +98,7 @@
          custom range sends ONLY `from`/`to`. This is the fix for the
          old single-form bug where pre-filled dates silently overrode
          the preset buttons. --}}
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-7">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-7 print:hidden">
         <form method="GET" action="{{ route('admin.reports.index') }}"
               class="inline-flex items-center self-start bg-white border border-rule rounded-lg p-1 gap-1 shadow-card">
             @foreach (['week' => 'Minggu Ini', 'month' => 'Bulan Ini', 'quarter' => '3 Bulan', 'year' => 'Tahun Ini'] as $val => $label)
@@ -91,20 +110,27 @@
             @endforeach
         </form>
 
-        <form method="GET" action="{{ route('admin.reports.index') }}" class="flex items-center gap-2 flex-wrap">
-            <input type="date" name="from" value="{{ $from->format('Y-m-d') }}"
-                   class="form-input py-2 text-xs w-36" aria-label="Tanggal mulai">
-            <span class="text-rule-strong font-semibold">–</span>
-            <input type="date" name="to" value="{{ $to->format('Y-m-d') }}"
-                   class="form-input py-2 text-xs w-36" aria-label="Tanggal selesai">
-            <button type="submit" class="btn-mark btn-sm">Terapkan</button>
-        </form>
+        <div class="flex items-center gap-2 flex-wrap">
+            <form method="GET" action="{{ route('admin.reports.index') }}" class="flex items-center gap-2 flex-wrap">
+                <input type="date" name="from" value="{{ $from->format('Y-m-d') }}"
+                       class="form-input py-2 text-xs w-36" aria-label="Tanggal mulai">
+                <span class="text-rule-strong font-semibold">–</span>
+                <input type="date" name="to" value="{{ $to->format('Y-m-d') }}"
+                       class="form-input py-2 text-xs w-36" aria-label="Tanggal selesai">
+                <button type="submit" class="btn-mark btn-sm">Terapkan</button>
+            </form>
+
+            <button type="button" onclick="window.print()" class="btn-secondary btn-sm" title="Cetak atau simpan sebagai PDF">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Cetak PDF
+            </button>
+        </div>
     </div>
 
     {{-- ── KPI band ──────────────────────────────────────────────
          `gap-px` over a rule-colored background renders hairline
          dividers that survive responsive wrapping. --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule rounded-xl shadow-card overflow-hidden mb-6">
+    <div class="print-kpis grid grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule rounded-xl shadow-card overflow-hidden mb-6">
 
         {{-- Total reservasi --}}
         <div class="bg-white p-5 sm:p-6">

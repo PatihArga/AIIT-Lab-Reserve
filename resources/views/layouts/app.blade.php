@@ -27,7 +27,9 @@
              style="display:none"></div>
 
         {{-- Sidebar (uses mobileOpen on mobile, sidebarOpen on desktop) --}}
-        <x-app-sidebar />
+        <div class="print:hidden">
+            <x-app-sidebar />
+        </div>
 
         {{-- Mobile sidebar open trigger — floating icon button, hidden when drawer is open --}}
         <button x-show="!mobileOpen"
@@ -38,7 +40,7 @@
                 x-transition:leave="transition ease-in duration-100"
                 x-transition:leave-start="opacity-100 scale-100"
                 x-transition:leave-end="opacity-0 scale-90"
-                class="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 flex items-center justify-center rounded-xl bg-ink-900 text-white shadow-lg"
+                class="lg:hidden print:hidden fixed top-4 left-4 z-50 w-9 h-9 flex items-center justify-center rounded-xl bg-ink-900 text-white shadow-lg"
                 style="display:none"
                 aria-label="Buka sidebar">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -49,7 +51,7 @@
         {{-- Desktop sidebar collapse/expand toggle pill --}}
         <button @click="sidebarOpen = !sidebarOpen"
                 :style="{ left: sidebarOpen ? '272px' : '16px' }"
-                class="hidden lg:flex fixed top-[22px] z-50 w-7 h-7 rounded-full bg-white border border-rule shadow-card items-center justify-center text-ink-700/40 hover:text-ink-900 hover:bg-ink-50 transition-all duration-300"
+                class="hidden lg:flex print:!hidden fixed top-[22px] z-50 w-7 h-7 rounded-full bg-white border border-rule shadow-card items-center justify-center text-ink-700/40 hover:text-ink-900 hover:bg-ink-50 transition-all duration-300"
                 title="Toggle sidebar">
             <svg :class="{ 'rotate-180': !sidebarOpen }" class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <polyline points="15 18 9 12 15 6"/>
@@ -61,7 +63,7 @@
     @endif
 
     {{-- Main content wrapper — shifts right on desktop only when the admin sidebar is open --}}
-    <div class="min-h-screen flex flex-col transition-all duration-300 {{ $isAdmin ? 'pt-14 lg:pt-0' : '' }}"
+    <div class="min-h-screen flex flex-col transition-all duration-300 print:!ml-0 print:!pt-0 {{ $isAdmin ? 'pt-14 lg:pt-0' : '' }}"
          @if ($isAdmin) :class="sidebarOpen ? 'lg:ml-shell' : 'lg:ml-0'" @endif>
 
         {{-- Optional sticky top-bar slot --}}
@@ -90,7 +92,7 @@
         </main>
 
         {{-- Footer --}}
-        <footer class="px-4 sm:px-6 lg:px-8 py-5 lg:py-6 border-t border-rule">
+        <footer class="px-4 sm:px-6 lg:px-8 py-5 lg:py-6 border-t border-rule print:hidden">
             <div class="max-w-content mx-auto flex items-center justify-between text-[0.7rem] uppercase tracking-label text-ink-700/40 font-semibold">
                 <span>UKRIDA · Lab Reserve</span>
                 <span>v1.0.0</span>
@@ -100,7 +102,7 @@
     </div>
 
     {{-- Toast container --}}
-    <div id="toast-root" class="fixed bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2 max-w-sm">
+    <div id="toast-root" class="fixed bottom-6 right-4 lg:right-6 z-50 flex flex-col gap-2 max-w-sm print:hidden">
         @if (session('success'))
             <div x-data="{ show: true }" x-show="show"
                  x-init="setTimeout(() => show = false, 5000)"
