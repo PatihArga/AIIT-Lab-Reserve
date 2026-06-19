@@ -8,26 +8,27 @@ use App\Models\Booking;
 use App\Models\Computer;
 use App\Models\Team;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminAuditLogController extends Controller
 {
-    /** action → [human description, dot colour class] */
+    /** action → [human description, accent hex] (drives the timeline dot + tag) */
     private const PRESENTATION = [
-        'booking.submitted'       => ['Permintaan baru dikirim',         'bg-mark-500'],
-        'booking.approved'        => ['Reservasi disetujui',             'bg-status-approved'],
-        'booking.rejected'        => ['Reservasi ditolak',               'bg-status-rejected'],
-        'booking.auto_rejected'   => ['Ditolak otomatis (bentrok slot)', 'bg-status-rejected'],
-        'booking.completed'       => ['Reservasi diselesaikan',          'bg-[#2eb8a0]'],
-        'booking.cancelled'       => ['Reservasi dibatalkan',            'bg-ink-700/30'],
-        'logbook.updated'         => ['Logbook diperbarui',              'bg-mark-500'],
-        'computer.status_changed' => ['Status unit komputer diubah',     'bg-ink-700/20'],
-        'user.created'            => ['Akun dosen dibuat',               'bg-status-review'],
-        'user.updated'            => ['Akun dosen diperbarui',           'bg-status-review'],
-        'team.created'            => ['Tim baru dibuat',                 'bg-status-review'],
-        'team.updated'            => ['Tim diperbarui',                  'bg-status-review'],
-        'settings.updated'        => ['Pengaturan lab diperbarui',       'bg-ink-700/20'],
+        'booking.submitted'       => ['Permintaan baru dikirim',         '#D9A300'],
+        'booking.approved'        => ['Reservasi disetujui',             '#16A34A'],
+        'booking.rejected'        => ['Reservasi ditolak',               '#DC2626'],
+        'booking.auto_rejected'   => ['Ditolak otomatis (bentrok slot)', '#DC2626'],
+        'booking.completed'       => ['Reservasi diselesaikan',          '#0891B2'],
+        'booking.cancelled'       => ['Reservasi dibatalkan',            '#6B7280'],
+        'logbook.updated'         => ['Logbook diperbarui',              '#C99400'],
+        'computer.status_changed' => ['Status unit komputer diubah',     '#4A5568'],
+        'user.created'            => ['Akun dosen dibuat',               '#7C3AED'],
+        'user.updated'            => ['Akun dosen diperbarui',           '#7C3AED'],
+        'team.created'            => ['Tim baru dibuat',                 '#7C3AED'],
+        'team.updated'            => ['Tim diperbarui',                  '#7C3AED'],
+        'settings.updated'        => ['Pengaturan lab diperbarui',       '#7C5CCF'],
     ];
 
     /** field key → human label, used when rendering the before/after diff */
@@ -42,8 +43,12 @@ class AdminAuditLogController extends Controller
     {
         $query = AuditLog::with(['user', 'auditable'])->latest('created_at')->latest('id');
 
-        if ($request->filled('action') && $request->action !== 'all') {
-            $query->where('action', $request->action);
+        // Action filter is a checkbox group (`actions[]`). A hidden `af` marker
+        // signals the group was submitted: with the marker present, only the
+        // checked actions show (empty = show none); without it (fresh load),
+        // everything shows — i.e. all boxes default to checked.
+        if ($request->has('af')) {
+            $query->whereIn('action', (array) $request->input('actions', []));
         }
         if ($request->filled('user_id') && $request->user_id !== 'all') {
             $query->where('user_id', $request->user_id);
@@ -62,13 +67,28 @@ class AdminAuditLogController extends Controller
             });
         }
 
+        // Counts that mirror the active filters (computed before pagination).
+        $filteredTotal = (clone $query)->count();
+        $filteredToday = (clone $query)->whereDate('created_at', today())->count();
+
         $logs = $query->paginate(20)->withQueryString()->through(fn ($log) => $this->present($log));
 
         $actions = AuditLog::distinct()->orderBy('action')->pluck('action');
         $users   = User::whereIn('id', AuditLog::whereNotNull('user_id')->distinct()->pluck('user_id'))
             ->orderBy('name')->get(['id', 'name']);
 
-        return view('admin.audit-log.index', compact('logs', 'actions', 'users'));
+        $stats = [
+            // These two reflect the current filter selection.
+            'total'        => $filteredTotal,
+            'today'        => $filteredToday,
+            // These remain system-wide.
+            'processed'    => AuditLog::whereIn('action', [
+                'booking.approved', 'booking.rejected', 'booking.auto_rejected', 'booking.completed',
+            ])->count(),
+            'active_users' => AuditLog::whereNotNull('user_id')->distinct()->count('user_id'),
+        ];
+
+        return view('admin.audit-log.index', compact('logs', 'actions', 'users', 'stats'));
     }
 
     /** Flatten one log row into the shape the view renders. */
@@ -85,14 +105,59 @@ class AdminAuditLogController extends Controller
             default                             => '—',
         };
 
+        $created = $log->created_at;
+
         return [
-            'time'    => optional($log->created_at)->translatedFormat('d M Y · H:i') ?? '—',
-            'user'    => $log->user?->name ?? 'Sistem',
-            'action'  => $log->action,
-            'desc'    => $desc,
-            'color'   => $color,
-            'target'  => $target,
-            'changes' => $this->changes($log),
+            'date_key'    => $created ? $created->toDateString() : '—',
+            'day_label'   => $created ? $created->locale('id')->translatedFormat('d F Y') : '—',
+            'day_rel'     => $this->relativeDay($created),
+            'time'        => $created ? $created->format('H:i') : '—',
+            'user'        => $log->user?->name ?? 'Sistem',
+            'action'      => $log->action,
+            'desc'        => $desc,
+            'color'       => $color,
+            'target'      => $target,
+            'changes'     => $this->changes($log),
+            'inline_diff' => $this->inlineDiff($log),
+        ];
+    }
+
+    /** Indonesian relative-day label for the timeline group headers. */
+    private function relativeDay(?Carbon $date): string
+    {
+        if (! $date) {
+            return '';
+        }
+        if ($date->isToday()) {
+            return 'Hari ini';
+        }
+        if ($date->isYesterday()) {
+            return 'Kemarin';
+        }
+
+        return (int) $date->copy()->startOfDay()->diffInDays(today()) . ' hari lalu';
+    }
+
+    /**
+     * Compact inline before/after for actions that change a single field
+     * (currently computer.status_changed → status). Null when not applicable.
+     */
+    private function inlineDiff(AuditLog $log): ?array
+    {
+        if ($log->action !== 'computer.status_changed') {
+            return null;
+        }
+
+        $old = $log->old_values ?? [];
+        $new = $log->new_values ?? [];
+
+        if (! isset($old['status']) && ! isset($new['status'])) {
+            return null;
+        }
+
+        return [
+            'before' => $old['status'] ?? '—',
+            'after'  => $new['status'] ?? '—',
         ];
     }
 
