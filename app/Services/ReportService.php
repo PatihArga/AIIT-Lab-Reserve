@@ -36,6 +36,7 @@ class ReportService
             'categories'   => $this->categoryBreakdown($from, $to),
             'topUsers'     => $this->topUsers($from, $to),
             'computerUsage'=> $this->computerUsage($from, $to),
+            'installations'=> $this->installations($from, $to),
         ];
     }
 
@@ -228,6 +229,58 @@ class ReportService
                 'hours'       => $hours,
                 'pct'         => $isMaint ? 0 : $pct,
                 'maintenance' => $isMaint,
+            ];
+        })->toArray();
+    }
+
+    // ─── Software installations ───────────────────────────────────
+
+    /**
+     * Installation reports in the range: each session where the user
+     * flagged a software install and listed what they installed, paired
+     * with the unit(s) that session occupied.
+     *
+     * Software is recorded per-session (not per-PC), so each row lists the
+     * software once against all units of that booking. full_room sessions
+     * implicitly occupy every unit → "Semua unit".
+     */
+    private function installations(Carbon $from, Carbon $to): array
+    {
+        $bookings = Booking::query()
+            ->whereBetween('date', [$from, $to])
+            ->whereIn('status', self::USED_STATUSES)
+            ->whereHas('logbook', fn ($q) => $q
+                ->where('needs_installation', true)
+                ->whereNotNull('special_software')
+                ->whereRaw("TRIM(special_software) <> ''"))
+            ->with([
+                'logbook:id,booking_id,special_software',
+                'computers:id,label,unit_number',
+                'user:id,name,role',
+                'user.teamAccount:id,user_id,name',
+            ])
+            ->orderByDesc('date')->orderByDesc('start_time')
+            ->get();
+
+        return $bookings->map(function ($b) {
+            $isAllUnits = $b->booking_type === 'full_room';
+            $units = $isAllUnits
+                ? []
+                : $b->computers->sortBy('unit_number')->pluck('label')->values()->all();
+
+            $who = $b->user
+                ? ($b->user->role === 'team' && $b->user->teamAccount
+                    ? $b->user->teamAccount->name
+                    : $b->user->name)
+                : '—';
+
+            return [
+                'booking_code' => $b->booking_code,
+                'date'         => $b->date,
+                'user'         => $who,
+                'units'        => $units,
+                'all_units'    => $isAllUnits,
+                'software'     => trim($b->logbook->special_software),
             ];
         })->toArray();
     }
