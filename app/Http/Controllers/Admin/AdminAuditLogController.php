@@ -30,6 +30,14 @@ class AdminAuditLogController extends Controller
         'settings.updated'        => ['Pengaturan lab diperbarui',       'bg-ink-700/20'],
     ];
 
+    /** field key → human label, used when rendering the before/after diff */
+    private const FIELD_LABELS = [
+        'checkpoint_progress' => 'Catatan logbook',
+        'needs_installation'  => 'Instalasi perangkat lunak',
+        'special_software'    => 'Perangkat lunak',
+        'status'              => 'Status',
+    ];
+
     public function index(Request $request): View
     {
         $query = AuditLog::with(['user', 'auditable'])->latest('created_at')->latest('id');
@@ -78,12 +86,57 @@ class AdminAuditLogController extends Controller
         };
 
         return [
-            'time'   => optional($log->created_at)->translatedFormat('d M Y · H:i') ?? '—',
-            'user'   => $log->user?->name ?? 'Sistem',
-            'action' => $log->action,
-            'desc'   => $desc,
-            'color'  => $color,
-            'target' => $target,
+            'time'    => optional($log->created_at)->translatedFormat('d M Y · H:i') ?? '—',
+            'user'    => $log->user?->name ?? 'Sistem',
+            'action'  => $log->action,
+            'desc'    => $desc,
+            'color'   => $color,
+            'target'  => $target,
+            'changes' => $this->changes($log),
         ];
+    }
+
+    /**
+     * Build a per-field before/after diff for the view. Returns [] when the
+     * entry carries no recorded values.
+     */
+    private function changes(AuditLog $log): array
+    {
+        // Only logbook edits surface a full before/after diff; other actions
+        // keep the compact one-line presentation.
+        if ($log->action !== 'logbook.updated') {
+            return [];
+        }
+
+        $old = $log->old_values ?? [];
+        $new = $log->new_values ?? [];
+
+        $rows = [];
+        foreach (array_keys($old + $new) as $key) {
+            $rows[] = [
+                'label'  => self::FIELD_LABELS[$key] ?? $key,
+                'before' => $this->displayValue($key, $old[$key] ?? null),
+                'after'  => $this->displayValue($key, $new[$key] ?? null),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /** Render a stored value for display (booleans → Ya/Tidak, empty → em dash). */
+    private function displayValue(string $key, $value): string
+    {
+        if ($key === 'needs_installation' || is_bool($value)) {
+            if ($value === null) {
+                return '—';
+            }
+            return $value ? 'Ya' : 'Tidak';
+        }
+
+        if ($value === null || $value === '') {
+            return '—';
+        }
+
+        return (string) $value;
     }
 }

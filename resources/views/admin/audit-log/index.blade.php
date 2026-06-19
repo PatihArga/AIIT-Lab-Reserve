@@ -62,6 +62,38 @@
                             <span class="mono-data text-ink-700/60">{{ $log['target'] }}</span>
                         @endif
                     </div>
+
+                    {{-- Before/after diff — collapsed by default --}}
+                    @if (! empty($log['changes']))
+                        <div x-data="{ open: false }" class="mt-2">
+                            <button type="button" @click="open = !open"
+                                    class="inline-flex items-center gap-1 text-[11px] font-semibold text-mark-600 hover:text-mark-700">
+                                <svg class="w-3 h-3 transition-transform" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                <span x-text="open ? 'Sembunyikan perubahan' : 'Lihat perubahan'"></span>
+                            </button>
+                            <div x-show="open" style="display:none"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 class="mt-2 space-y-3">
+                                @foreach ($log['changes'] as $ch)
+                                    <div>
+                                        <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-1">{{ $ch['label'] }}</div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                            <div class="rounded-md border border-rule bg-ink-50/50 px-2.5 py-1.5">
+                                                <div class="text-[10px] uppercase tracking-label text-ink-700/40 mb-0.5">Sebelum</div>
+                                                <div class="text-ink-700/80 whitespace-pre-wrap break-words">{{ $ch['before'] }}</div>
+                                            </div>
+                                            <div class="rounded-md border border-status-approved/30 bg-status-approved/5 px-2.5 py-1.5">
+                                                <div class="text-[10px] uppercase tracking-label text-ink-700/40 mb-0.5">Sesudah</div>
+                                                <div class="text-ink-900 whitespace-pre-wrap break-words">{{ $ch['after'] }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty

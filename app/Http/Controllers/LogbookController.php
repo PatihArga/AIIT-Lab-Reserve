@@ -6,7 +6,6 @@ use App\Models\Booking;
 use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class LogbookController extends Controller
@@ -73,8 +72,8 @@ class LogbookController extends Controller
 
     /**
      * Record a 'logbook.updated' audit entry, but only for the fields that
-     * actually changed. checkpoint_progress is stored as a short preview to
-     * keep audit rows compact.
+     * actually changed. The full before/after value of each changed field is
+     * stored so the admin audit log can show the complete edit history.
      */
     private function recordLogbookAudit(Booking $booking, array $old, array $new): void
     {
@@ -85,8 +84,8 @@ class LogbookController extends Controller
             if (($old[$key] ?? null) === $newValue) {
                 continue;
             }
-            $changedOld[$key] = $this->auditPreview($key, $old[$key] ?? null);
-            $changedNew[$key] = $this->auditPreview($key, $newValue);
+            $changedOld[$key] = $old[$key] ?? null;
+            $changedNew[$key] = $newValue;
         }
 
         if (empty($changedNew)) {
@@ -94,15 +93,5 @@ class LogbookController extends Controller
         }
 
         AuditLogService::record('logbook.updated', $booking, $changedOld, $changedNew);
-    }
-
-    /** Trim long text fields so the audit diff stays small. */
-    private function auditPreview(string $key, $value)
-    {
-        if ($key === 'checkpoint_progress' && is_string($value)) {
-            return Str::limit($value, 120);
-        }
-
-        return $value;
     }
 }

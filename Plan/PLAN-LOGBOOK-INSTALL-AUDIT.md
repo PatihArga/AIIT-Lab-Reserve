@@ -124,9 +124,9 @@ Inside each card's `<form>`, wrap in `x-data` seeded from the stored value:
 AuditLogService::record('logbook.updated', $booking, $old, $new);
 ```
 
-  where `$old`/`$new` contain only the changed fields (compact diff). For long
-  `checkpoint_progress`, store a trimmed preview (e.g. first ~120 chars) to keep
-  audit rows small — *(open decision B)*.
+  where `$old`/`$new` contain only the changed fields. The **full** before/after
+  value of each changed field is stored (no truncation) so the audit log shows
+  the complete edit history — *(decision B, finalised)*.
 - First-time creation (no prior logbook) counts as a change → logged as well.
 
 ### 2b. `AdminAuditLogController::PRESENTATION`
@@ -137,6 +137,14 @@ Add a label + dot colour so the entry renders nicely:
 ```
 
 (The `Booking` auditable already makes the target column show the booking code.)
+
+### 2d. Audit log view — show the before/after diff
+The audit log list did not previously render `old_values`/`new_values`. Add a
+per-entry, collapsed-by-default **"Lihat perubahan"** toggle that reveals a
+field-by-field **Sebelum / Sesudah** diff (booleans rendered as Ya/Tidak, empty
+as em dash). `AdminAuditLogController::present()` builds the labelled diff via a
+`FIELD_LABELS` map. The diff is **scoped to `logbook.updated` only** (guarded in
+`changes()`); all other audit actions keep the plain one-line presentation.
 
 ### 2c. Verify Phase 2
 - Runtime: edit a logbook, assert one `audit_logs` row with
@@ -153,7 +161,8 @@ Add a label + dot colour so the entry renders nicely:
 |---|---|
 | `app/Http/Controllers/LogbookController.php` | Validation + save for `needs_installation`/`special_software`; audit call |
 | `resources/views/logbook/index.blade.php` | Checkbox + conditional software textarea (Alpine) |
-| `app/Http/Controllers/Admin/AdminAuditLogController.php` | `logbook.updated` presentation entry |
+| `app/Http/Controllers/Admin/AdminAuditLogController.php` | `logbook.updated` presentation entry + before/after diff builder |
+| `resources/views/admin/audit-log/index.blade.php` | Collapsible Sebelum/Sesudah diff per entry |
 
 **No migration. No route changes. No model change** (`special_software` already fillable).
 
@@ -165,11 +174,9 @@ Add a label + dot colour so the entry renders nicely:
   Recommended: **reuse `special_software`** (no migration, semantically close).
   Alternative: add a clearly-named `installed_software` column via a new
   migration.
-- **B. Audit detail granularity.**
-  Recommended: store a **compact diff of changed fields**, with
-  `checkpoint_progress` truncated to a short preview.
-  Alternatives: store full before/after text, or log a metadata-only entry
-  (no field values).
+- **B. Audit detail granularity. — FINALISED: full before/after.**
+  Stores the complete before/after of every changed field (no truncation), and
+  the admin audit log renders an expandable **Sebelum / Sesudah** diff per entry.
 - **C. Log only on real changes vs. every save.**
   Recommended: **only when a tracked field actually changed.**
   Alternative: an entry on every successful submit.
