@@ -427,9 +427,34 @@
                         </div>
                     </template>
 
+                    <label class="wcal-lbl">Kategori</label>
+                    <select class="wcal-select" x-model="category">
+                        <option value="penelitian">Penelitian</option>
+                        <option value="tugas_akhir">Tugas Akhir</option>
+                        <option value="project_akademik">Project Akademik</option>
+                        <option value="praktikum">Praktikum</option>
+                        <option value="lainnya" selected>Lainnya</option>
+                    </select>
+
                     <label class="wcal-lbl">Alasan / Tujuan</label>
                     <input type="text" class="wcal-input" x-model="reason" maxlength="1000"
                            placeholder="Tujuan peminjaman…" @keydown.enter.prevent="submitBooking()">
+
+                    <label class="wcal-lbl">Kebutuhan Tambahan</label>
+                    <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:14px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#0A1A47; cursor:pointer;">
+                            <input type="checkbox" x-model="needsInternet" style="accent-color:#4f46e5; width:15px; height:15px;">
+                            <span>Akses Internet</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#0A1A47; cursor:pointer;">
+                            <input type="checkbox" x-model="needsInstallation" style="accent-color:#4f46e5; width:15px; height:15px;">
+                            <span>Instalasi Software</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#0A1A47; cursor:pointer;">
+                            <input type="checkbox" x-model="hasExternalDevices" style="accent-color:#4f46e5; width:15px; height:15px;">
+                            <span>Perangkat Eksternal</span>
+                        </label>
+                    </div>
 
                     {{-- Hidden form — submitted natively on "Konfirmasi". Values mirror the popover state. --}}
                     <form x-ref="calForm" method="POST" action="{{ route('calendar.booking.store') }}" class="wcal-hidden-form">
@@ -440,6 +465,10 @@
                         <input type="hidden" name="start_time" :value="fmtMin(creating.start)">
                         <input type="hidden" name="end_time" :value="fmtMin(creating.end)">
                         <input type="hidden" name="reason" :value="reason">
+                        <input type="hidden" name="category" :value="category">
+                        <input type="hidden" name="needs_internet" :value="needsInternet ? '1' : '0'">
+                        <input type="hidden" name="needs_installation" :value="needsInstallation ? '1' : '0'">
+                        <input type="hidden" name="external_devices" :value="hasExternalDevices ? '1' : '0'">
                         <template x-for="id in computersPayload" :key="id">
                             <input type="hidden" name="computers[]" :value="id">
                         </template>
@@ -587,6 +616,10 @@ function weekCal() {
 
         // ── inline booking form state (popover) ──
         reason: '',
+        category: 'lainnya',
+        needsInternet: false,
+        needsInstallation: false,
+        hasExternalDevices: false,
         pcList: [],
         pcLoading: false,
         pcError: false,
@@ -837,6 +870,10 @@ function weekCal() {
             const loanType = 'computer';
             this.details = null; this.groupPop = null;
             this.reason = '';
+            this.category = 'lainnya';
+            this.needsInternet = false;
+            this.needsInstallation = false;
+            this.hasExternalDevices = false;
             this.selectedPc = null;
             this.selectedPcs = [];
             this.pcList = [];

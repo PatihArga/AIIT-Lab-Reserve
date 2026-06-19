@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 09, 2026 at 09:08 PM
+-- Generation Time: Jun 18, 2026 at 10:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -59,7 +59,21 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `auditable_type`, `auditabl
 (14, 1, 'booking.approved', 'App\\Models\\Booking', 20, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-06-07 08:09:16'),
 (15, 1, 'booking.approved', 'App\\Models\\Booking', 21, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-06-07 11:40:24'),
 (16, 1, 'booking.approved', 'App\\Models\\Booking', 23, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-06-07 11:49:21'),
-(17, 1, 'booking.approved', 'App\\Models\\Booking', 24, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-06-07 11:51:19');
+(17, 1, 'booking.approved', 'App\\Models\\Booking', 24, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-06-07 11:51:19'),
+(21, 1, 'settings.updated', NULL, NULL, '{\"operating_end\":\"22:00\",\"operating_days\":\"1,2,3,4,5,6\"}', '{\"operating_end\":\"18:00\",\"operating_days\":\"1,2,3,4,5\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-09 19:17:37'),
+(22, 2, 'booking.submitted', 'App\\Models\\Booking', 25, NULL, '{\"status\":\"submitted\",\"booking_type\":\"computers_only\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-12 04:51:00'),
+(23, 1, 'booking.approved', 'App\\Models\\Booking', 25, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-12 06:05:57'),
+(24, 1, 'user.created', 'App\\Models\\User', 4, NULL, '{\"name\":\"Bintang Talenta\",\"email\":\"bintang.412023022@civitas.ukrida.ac.id\",\"role\":\"lecturer\",\"study_program_id\":\"1\",\"is_active\":true}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 06:54:52'),
+(25, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"online\"}', '{\"status\":\"maintenance\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 07:51:26'),
+(26, 1, 'team.created', 'App\\Models\\Team', 1, NULL, '{\"name\":\"Tim Uji Coba\",\"email\":\"tim.uji@ti.ukrida.test\",\"pic_lecturer_id\":2,\"study_program_id\":1,\"member_count\":1}', '127.0.0.1', 'Symfony', '2026-06-14 18:33:01'),
+(27, 1, 'team.created', 'App\\Models\\Team', 2, NULL, '{\"name\":\"Team Joy\",\"email\":\"Sanders.412023020@civitas.ukrida.ac.id\",\"pic_lecturer_id\":\"4\",\"study_program_id\":\"1\",\"member_count\":1}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 18:34:21'),
+(28, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"maintenance\"}', '{\"status\":\"online\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 18:40:30'),
+(29, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"online\"}', '{\"status\":\"maintenance\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 19:18:11'),
+(30, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"maintenance\"}', '{\"status\":\"online\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-14 19:18:15'),
+(31, 4, 'booking.submitted', 'App\\Models\\Booking', 26, NULL, '{\"status\":\"submitted\",\"booking_type\":\"full_room\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:04:57'),
+(32, 1, 'booking.approved', 'App\\Models\\Booking', 26, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:05:21'),
+(33, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"online\"}', '{\"status\":\"maintenance\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:08:07'),
+(34, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"maintenance\"}', '{\"status\":\"online\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-18 19:44:14');
 
 -- --------------------------------------------------------
 
@@ -101,7 +115,9 @@ INSERT INTO `bookings` (`id`, `booking_code`, `user_id`, `booking_type`, `room_s
 (20, 'LAB-0009', 2, 'full_room', NULL, '2026-06-08', '14:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 08:09:03', '2026-06-07 08:09:16', 1, '2026-06-07 08:09:03', '2026-06-07 08:09:16'),
 (21, 'LAB-0010', 3, 'room_only', 'exclusive', '2026-06-09', '14:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:40:10', '2026-06-07 11:40:23', 1, '2026-06-07 11:40:10', '2026-06-07 11:40:23'),
 (23, 'LAB-0011', 2, 'room_only', 'shared', '2026-06-10', '14:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:49:05', '2026-06-07 11:49:21', 1, '2026-06-07 11:49:05', '2026-06-07 11:49:21'),
-(24, 'LAB-0012', 2, 'computers_only', NULL, '2026-06-10', '13:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:51:19', 1, '2026-06-07 11:50:49', '2026-06-07 11:51:19');
+(24, 'LAB-0012', 2, 'computers_only', NULL, '2026-06-10', '13:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:51:19', 1, '2026-06-07 11:50:49', '2026-06-07 11:51:19'),
+(25, 'LAB-0013', 2, 'computers_only', NULL, '2026-06-12', '14:00:00', '17:00:00', 'approved', NULL, NULL, '2026-06-12 04:51:00', '2026-06-12 06:05:57', 1, '2026-06-12 04:51:00', '2026-06-12 06:05:57'),
+(26, 'LAB-0014', 4, 'full_room', NULL, '2026-06-22', '09:00:00', '12:00:00', 'approved', NULL, NULL, '2026-06-17 07:04:57', '2026-06-17 07:05:21', 1, '2026-06-17 07:04:57', '2026-06-17 07:05:21');
 
 -- --------------------------------------------------------
 
@@ -134,7 +150,11 @@ INSERT INTO `booking_computers` (`id`, `booking_id`, `computer_id`) VALUES
 (28, 20, 1),
 (27, 20, 2),
 (29, 20, 3),
-(30, 24, 2);
+(30, 24, 2),
+(31, 25, 1),
+(32, 26, 1),
+(33, 26, 2),
+(34, 26, 3);
 
 -- --------------------------------------------------------
 
@@ -166,7 +186,7 @@ CREATE TABLE `booking_logbooks` (
 --
 
 INSERT INTO `booking_logbooks` (`id`, `booking_id`, `category`, `checkpoint_progress`, `related_course`, `supervisor_name`, `duration_sufficient`, `special_software`, `needs_internet`, `needs_installation`, `external_devices`, `priority_level`, `priority_reason`, `session_target`, `created_at`, `updated_at`) VALUES
-(5, 5, 'penelitian', 'Training AI untuk UAS', 'Kecerdasan Buatan', 'Dr. Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-17 17:58:12', '2026-05-17 17:58:12'),
+(5, 5, 'penelitian', 'Training AI untuk UAS', 'Kecerdasan Buatan', 'Dr. Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-17 17:58:12', '2026-06-14 19:06:55'),
 (6, 6, 'tugas_akhir', 'Sidang Akhir Skripsi', 'Tugas Akhir', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-17 21:14:10', '2026-05-17 21:14:10'),
 (7, 7, 'penelitian', 'Ingin melakukan penelitian algoritma random forest dan decision tree', 'Kecerdasan Buatan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-19 09:44:59', '2026-05-19 09:44:59'),
 (8, 8, 'penelitian', 'Ingin meneliti tentang algoritma random forest pada dbd', 'Machine Learning', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-20 06:03:50', '2026-05-20 06:03:50'),
@@ -176,7 +196,9 @@ INSERT INTO `booking_logbooks` (`id`, `booking_id`, `category`, `checkpoint_prog
 (20, 20, 'lainnya', 'Presentasi Tugas Akhir', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 08:09:03', '2026-06-07 08:09:03'),
 (21, 21, 'lainnya', 'Melakukan Rekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:40:10', '2026-06-07 11:40:10'),
 (23, 23, 'lainnya', 'Melakukan Perekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:49:05', '2026-06-07 11:49:05'),
-(24, 24, 'lainnya', 'Tugas Akhir 41023022', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:50:49');
+(24, 24, 'lainnya', 'Tugas Akhir 41023022', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:50:49'),
+(25, 25, 'lainnya', 'wdaaaaaaaaaaaaaa', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-12 04:51:00', '2026-06-14 19:12:11'),
+(26, 26, 'lainnya', 'Presentasi TA\r\n\r\n- Mnegunduh VS CODE\r\nffsfs\r\ndf\r\nsfds', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-17 07:04:57', '2026-06-17 07:15:25');
 
 -- --------------------------------------------------------
 
@@ -189,14 +211,6 @@ CREATE TABLE `cache` (
   `value` mediumtext NOT NULL,
   `expiration` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `cache`
---
-
-INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-('ukrida-lab-reserve-cache-admin@ukrida.ac.id|::1', 'i:1;', 1779811821),
-('ukrida-lab-reserve-cache-admin@ukrida.ac.id|::1:timer', 'i:1779811821;', 1779811821);
 
 -- --------------------------------------------------------
 
@@ -231,7 +245,7 @@ CREATE TABLE `computers` (
 --
 
 INSERT INTO `computers` (`id`, `unit_number`, `label`, `status`, `specs_note`, `created_at`, `updated_at`) VALUES
-(1, 1, 'PC-01', 'online', NULL, '2026-05-07 16:38:42', '2026-05-07 16:38:42'),
+(1, 1, 'PC-01', 'online', NULL, '2026-05-07 16:38:42', '2026-06-18 19:44:14'),
 (2, 2, 'PC-02', 'online', NULL, '2026-05-07 16:38:42', '2026-05-17 20:40:56'),
 (3, 3, 'PC-03', 'online', NULL, '2026-05-07 16:38:42', '2026-05-07 16:38:42'),
 (4, 4, 'PC-04', 'online', NULL, '2026-05-07 16:38:42', '2026-05-07 16:38:42'),
@@ -315,8 +329,8 @@ INSERT INTO `lab_settings` (`id`, `key`, `value`, `description`, `updated_at`) V
 (2, 'admin_email', 'admin@ukrida.ac.id', 'Email admin penerima notifikasi', '2026-06-08 15:15:18'),
 (3, 'buffer_minutes', '15', 'Waktu buffer antar sesi (menit)', '2026-06-08 15:15:19'),
 (4, 'operating_start', '08:00', 'Jam buka laboratorium', '2026-05-07 16:38:42'),
-(5, 'operating_end', '22:00', 'Jam tutup laboratorium', '2026-06-08 15:15:18'),
-(6, 'operating_days', '1,2,3,4,5,6', 'Hari operasional (1=Senin, 7=Minggu)', '2026-06-08 15:15:19'),
+(5, 'operating_end', '18:00', 'Jam tutup laboratorium', '2026-06-09 19:17:37'),
+(6, 'operating_days', '1,2,3,4,5', 'Hari operasional (1=Senin, 7=Minggu)', '2026-06-09 19:17:37'),
 (7, 'max_session_hours', '4', 'Maksimum durasi peminjaman (jam)', '2026-06-08 15:15:19'),
 (8, 'session_lifetime', '120', 'Batas waktu sesi login (menit)', '2026-05-07 16:38:42');
 
@@ -350,7 +364,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (12, '2026_05_26_000001_rename_email_domain_to_email_in_study_programs', 3),
 (13, '2026_05_26_000002_add_gmail_to_users', 3),
 (14, '2026_06_03_000001_add_password_to_study_programs', 4),
-(15, '2026_06_08_000001_make_audit_auditable_nullable', 5);
+(15, '2026_06_08_000001_make_audit_auditable_nullable', 5),
+(16, '2026_06_14_000001_drop_gmail_from_users', 6);
 
 -- --------------------------------------------------------
 
@@ -384,15 +399,8 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('2FlSCpBKriYwilerfPYhiwpyra1A648uGfrj4yQK', 3, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoibUFHRTd3SnZVMlV0SEhEVjhJclAyb29qTlFvV1JDSmxvMlJ1alNUUiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjUyOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9ib29raW5nLzIxIjtzOjU6InJvdXRlIjtzOjEyOiJib29raW5nLnNob3ciO31zOjU6ImxvZ2luIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aTozO30=', 1780832413),
-('b9F734nTqg6KCo62Gv18N1mzeImJUUc9WRiaIWay', 2, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiMEhYam9aamdjTGdaMmpMbDg4eXk0Q25SUW41RGhicktHbzl5WWFEayI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjUwOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9jYWxlbmRhciI7czo1OiJyb3V0ZSI7czoxNDoiY2FsZW5kYXIuaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjU6ImxvZ2luIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1780856554),
-('CpXuTtUEIM76M77p4qBjPPblxlZXLXHSpDjQQdDg', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoib0N2Y0NPc1MyVmx2VkdVSVppcTRRRVhxT3hMT21TczRRd1owZFZpYyI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjU2OiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9hZG1pbi9yZXF1ZXN0cyI7czo1OiJyb3V0ZSI7czoyMDoiYWRtaW4ucmVxdWVzdHMuaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=', 1780833079),
-('pkol9s4yjU1p366w0JcuLoIqgPrkk9RzrSQ35irB', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoidTl1TU5OM3lxMUtYUm9wNWZjcVdxdHFMcW1Sck5QUXl0WmM2V2h5ciI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTY6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljL2FkbWluL3NldHRpbmdzIjtzOjU6InJvdXRlIjtzOjIwOiJhZG1pbi5zZXR0aW5ncy5pbmRleCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7fQ==', 1780932239),
-('PXeCD8KM79hX8x8HOthLRx1MSqbk647W1HlFWKbI', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiTFozcHE1OGpJTlFRSElmR0JtdnJiSzVjbDdGdk9MZURWTDFpMDA2USI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1780928751),
-('tQmYAKbFKYTHSM2wwjqgmqFt5L8eM2yqks7ElyRJ', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoiR0lWWFVnVmhTMEZZT0pxSzF6YUFMVWloRURodjhnTHVoNzZZaU5RRyI7czozOiJ1cmwiO2E6MTp7czo4OiJpbnRlbmRlZCI7czo1NzoiaHR0cDovL2xvY2FsaG9zdC9VS1JJREFfTGFiUmVzZXJ2ZS9wdWJsaWMvYm9va2luZy9oaXN0b3J5Ijt9czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljL2Jvb2tpbmcvaGlzdG9yeSI7czo1OiJyb3V0ZSI7czoxNToiYm9va2luZy5oaXN0b3J5Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1780854802),
-('tzasdmAiheMpquQhYgMQj8PqDrh77s9koACugSUq', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiMm56UUgzQ2dmQldpem1BZTQ0OGsyVXRYNzZmMXVQODM5cGxXcGJJZCI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjYwOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9hZG1pbi91c2Vycy9jcmVhdGUiO3M6NToicm91dGUiO3M6MTg6ImFkbWluLnVzZXJzLmNyZWF0ZSI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7fQ==', 1780856629),
-('y8QXKFxHghohJhEM12uZhpBKBzhaCn9d42RD92XL', 2, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiaGdFUEw0NnZwdTd3enJPMGRZWDdJSXF1V1FJWEFKNFU4aHVmd3ZrQiI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjUwOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9jYWxlbmRhciI7czo1OiJyb3V0ZSI7czoxNDoiY2FsZW5kYXIuaW5kZXgiO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX1zOjU6ImxvZ2luIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToyO30=', 1780833730),
-('ZmA32m0mDLtlJXuJQN1y80ObZLpVPooKc5vxY7hX', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', 'YToyOntzOjY6Il90b2tlbiI7czo0MDoiV0NoeE42VUxoVmVMVjBZUVN5cGVWd3lQUHF4bVdsQTZQWVE1TEkzRyI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1780854802);
+('LkYLPtyZn6ClvwNhq1NxBnLDKHbgxrlCmgV0TjO9', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoidFVGd0l2N1hUYWJNSGw1V1RxRzN4NXEzQ3B2eU9ZSE5qU2RUS0RHeiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljL2FkbWluL2F1ZGl0LWxvZyI7czo1OiJyb3V0ZSI7czoyMToiYWRtaW4uYXVkaXQtbG9nLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9', 1781812680),
+('RMSVUKbNEAnqltaPJkhhu4L09dZQll52oNJTFYKD', 6, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiekZDbkVxSmlISVhRamkzSnBNSGZNWkhLMlVpek9hVzNoZDNvN3c3SiI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjUxOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9kYXNoYm9hcmQiO3M6NToicm91dGUiO3M6OToiZGFzaGJvYXJkIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1OiJsb2dpbiI7YTowOnt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Njt9', 1781812663);
 
 -- --------------------------------------------------------
 
@@ -438,6 +446,13 @@ CREATE TABLE `teams` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `teams`
+--
+
+INSERT INTO `teams` (`id`, `user_id`, `pic_lecturer_id`, `study_program_id`, `name`, `description`, `is_active`, `created_at`, `updated_at`) VALUES
+(2, 6, 4, 1, 'Team Joy', NULL, 1, '2026-06-14 18:34:21', '2026-06-14 18:34:21');
+
 -- --------------------------------------------------------
 
 --
@@ -453,6 +468,13 @@ CREATE TABLE `team_members` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `team_members`
+--
+
+INSERT INTO `team_members` (`id`, `team_id`, `student_name`, `student_id_number`, `created_at`, `updated_at`) VALUES
+(2, 2, 'Sanders Dylan', '412023020', '2026-06-14 18:34:21', '2026-06-14 18:34:21');
+
 -- --------------------------------------------------------
 
 --
@@ -464,7 +486,6 @@ CREATE TABLE `users` (
   `study_program_id` bigint(20) UNSIGNED DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `gmail` varchar(255) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('admin','lecturer','team') NOT NULL DEFAULT 'lecturer',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -478,10 +499,12 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `study_program_id`, `name`, `email`, `gmail`, `password`, `role`, `is_active`, `last_login_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Administrator', 'admin@ukrida.ac.id', 'admin.ukrida@gmail.com', '$2y$12$MrjedimeAUsRlY5szvN3QOhBZFWmBR5m9p1d25uYFf.c60jXZyVRK', 'admin', 1, '2026-06-08 14:26:04', NULL, '2026-05-07 16:38:42', '2026-06-08 14:26:04'),
-(2, 1, 'Dr. Budi Santoso', 'budi@ti.ukrida.ac.id', NULL, '$2y$12$zetlFn7awvIuLq9Jyt/.POT/M8zR934BRf9458jriV/C3nUPsH2tS', 'lecturer', 1, '2026-06-07 18:20:54', NULL, '2026-05-07 19:42:22', '2026-06-07 18:20:54'),
-(3, 1, 'Tim Alpha', 'tim.alpha@ti.ukrida.ac.id', NULL, '$2y$12$Q3kHegXI2rpbitL761e2s.LLdwf8qGZNzPU4s3meXTg7CxF6QhWI6', 'team', 1, '2026-06-07 11:33:30', NULL, '2026-05-07 19:42:22', '2026-06-07 11:33:30');
+INSERT INTO `users` (`id`, `study_program_id`, `name`, `email`, `password`, `role`, `is_active`, `last_login_at`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Administrator', 'admin@ukrida.ac.id', '$2y$12$MrjedimeAUsRlY5szvN3QOhBZFWmBR5m9p1d25uYFf.c60jXZyVRK', 'admin', 1, '2026-06-18 19:28:24', NULL, '2026-05-07 16:38:42', '2026-06-18 19:28:24'),
+(2, 1, 'Dr. Budi Santoso', 'budi@ti.ukrida.ac.id', '$2y$12$zetlFn7awvIuLq9Jyt/.POT/M8zR934BRf9458jriV/C3nUPsH2tS', 'lecturer', 1, '2026-06-14 18:39:30', NULL, '2026-05-07 19:42:22', '2026-06-14 18:39:30'),
+(3, 1, 'Tim Alpha', 'tim.alpha@ti.ukrida.ac.id', '$2y$12$Q3kHegXI2rpbitL761e2s.LLdwf8qGZNzPU4s3meXTg7CxF6QhWI6', 'team', 1, '2026-06-07 11:33:30', NULL, '2026-05-07 19:42:22', '2026-06-07 11:33:30'),
+(4, 1, 'Bintang Talenta', 'bintang.412023022@civitas.ukrida.ac.id', '$2y$12$4rccVTFuRVKMzrYeUUQqV.m1wPjn/63bJH870c4JUmmQPJC1wGq2.', 'lecturer', 1, '2026-06-18 19:24:34', NULL, '2026-06-14 06:54:52', '2026-06-18 19:24:34'),
+(6, 1, 'Team Joy', 'Sanders.412023020@civitas.ukrida.ac.id', '$2y$12$hu.U.FrJ4.X01VvLGo6tFOCkAaCq.f247bSvbab0yq.P9zThmQSuK', 'team', 1, '2026-06-18 19:29:13', NULL, '2026-06-14 18:34:21', '2026-06-18 19:29:13');
 
 --
 -- Indexes for dumped tables
@@ -619,7 +642,6 @@ ALTER TABLE `team_members`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `users_email_unique` (`email`),
-  ADD UNIQUE KEY `users_gmail_unique` (`gmail`),
   ADD KEY `users_study_program_id_foreign` (`study_program_id`);
 
 --
@@ -630,25 +652,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `booking_computers`
 --
 ALTER TABLE `booking_computers`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `booking_logbooks`
 --
 ALTER TABLE `booking_logbooks`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `computers`
@@ -678,7 +700,7 @@ ALTER TABLE `lab_settings`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `study_programs`
@@ -690,19 +712,19 @@ ALTER TABLE `study_programs`
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables

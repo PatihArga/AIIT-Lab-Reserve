@@ -136,10 +136,23 @@
                                 <div class="col-span-2 text-sm text-ink-900">{{ $booking->logbook->supervisor_name }}</div>
                             </div>
                         @endif
-                        <div class="px-6 py-4 flex items-center gap-3">
+                        <div class="px-6 py-4 flex items-center gap-3 flex-wrap">
                             <span class="text-[11px] uppercase tracking-label font-semibold text-ink-700/50 mr-1">Kebutuhan</span>
-                            @if ($booking->logbook->needs_internet)
-                                <span class="badge-outline text-[10px]">Internet</span>
+                            @php
+                                $hasNeeds = $booking->logbook->needs_internet
+                                         || $booking->logbook->needs_installation
+                                         || $booking->logbook->external_devices;
+                            @endphp
+                            @if ($hasNeeds)
+                                @if ($booking->logbook->needs_internet)
+                                    <span class="badge-outline text-[10px]">Internet</span>
+                                @endif
+                                @if ($booking->logbook->needs_installation)
+                                    <span class="badge-outline text-[10px]">Instalasi Software</span>
+                                @endif
+                                @if ($booking->logbook->external_devices)
+                                    <span class="badge-outline text-[10px]">Perangkat Eksternal</span>
+                                @endif
                             @else
                                 <span class="text-xs text-ink-700/50">Tidak ada kebutuhan tambahan.</span>
                             @endif

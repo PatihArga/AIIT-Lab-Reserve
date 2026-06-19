@@ -119,6 +119,10 @@ class CalendarController extends Controller
             'computers'    => ['array', 'required_if:booking_type,computers_only'],
             'computers.*'  => ['integer', Rule::in($computerIds)],
             'reason'       => ['required', 'string', 'min:3', 'max:1000'],
+            'category'     => ['required', Rule::in(['penelitian', 'tugas_akhir', 'project_akademik', 'praktikum', 'lainnya'])],
+            'needs_internet'    => ['nullable'],
+            'needs_installation'=> ['nullable'],
+            'external_devices'  => ['nullable'],
         ], [
             'date.after_or_equal'      => 'Tanggal tidak boleh di masa lalu.',
             'end_time.after'           => 'Waktu selesai harus setelah waktu mulai.',
@@ -128,6 +132,8 @@ class CalendarController extends Controller
             'booking_type.in'          => 'Tipe reservasi tidak valid.',
             'reason.required'          => 'Alasan / tujuan reservasi wajib diisi.',
             'reason.min'               => 'Alasan minimal 3 karakter.',
+            'category.required'        => 'Kategori wajib dipilih.',
+            'category.in'              => 'Kategori tidak valid.',
         ]);
 
         $validator->after(fn ($v) => $this->validateBusinessRules($request, $v));
@@ -162,11 +168,13 @@ class CalendarController extends Controller
         // logbook fields take safe defaults and can be filled in after approval via the
         // existing logbook edit form (BookingLogbookController).
         $logbook = [
-            'category'            => 'lainnya',
+            'category'            => $data['category'],
             'checkpoint_progress' => $data['reason'],
             'related_course'      => null,
             'supervisor_name'     => null,
-            'needs_internet'      => false,
+            'needs_internet'      => (bool) ($data['needs_internet'] ?? false),
+            'needs_installation'  => (bool) ($data['needs_installation'] ?? false),
+            'external_devices'    => ($data['external_devices'] ?? '0') === '1' ? 'Ya' : null,
         ];
 
         try {

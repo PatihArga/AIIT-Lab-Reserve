@@ -171,6 +171,8 @@ class BookingService
                 'related_course'      => $logbookData['related_course'] ?? null,
                 'supervisor_name'     => $logbookData['supervisor_name'] ?? null,
                 'needs_internet'      => (bool) ($logbookData['needs_internet'] ?? false),
+                'needs_installation'  => (bool) ($logbookData['needs_installation'] ?? false),
+                'external_devices'    => $logbookData['external_devices'] ?? null,
             ]);
 
             return $booking;
