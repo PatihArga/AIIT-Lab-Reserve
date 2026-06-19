@@ -21,6 +21,7 @@ class AdminAuditLogController extends Controller
         'booking.auto_rejected'   => ['Ditolak otomatis (bentrok slot)', 'bg-status-rejected'],
         'booking.completed'       => ['Reservasi diselesaikan',          'bg-[#2eb8a0]'],
         'booking.cancelled'       => ['Reservasi dibatalkan',            'bg-ink-700/30'],
+        'logbook.updated'         => ['Logbook diperbarui',              'bg-mark-500'],
         'computer.status_changed' => ['Status unit komputer diubah',     'bg-ink-700/20'],
         'user.created'            => ['Akun dosen dibuat',               'bg-status-review'],
         'user.updated'            => ['Akun dosen diperbarui',           'bg-status-review'],

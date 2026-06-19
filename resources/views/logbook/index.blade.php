@@ -62,7 +62,9 @@
                 </div>
 
                 {{-- Row 2 — logbook notes (editable) --}}
-                <form method="POST" action="{{ route('logbook.update', $booking) }}" class="px-5 py-5">
+                @php $installOn = old('needs_installation', $booking->logbook->needs_installation ?? false); @endphp
+                <form method="POST" action="{{ route('logbook.update', $booking) }}" class="px-5 py-5"
+                      x-data="{ install: {{ $installOn ? 'true' : 'false' }} }">
                     @csrf
                     @method('PUT')
 
@@ -76,6 +78,34 @@
                               x-init="$nextTick(() => { $el.style.height='auto'; $el.style.height=($el.scrollHeight + $el.offsetHeight - $el.clientHeight)+'px'; })"
                               @input="$el.style.height='auto'; $el.style.height=($el.scrollHeight + $el.offsetHeight - $el.clientHeight)+'px'"
                               placeholder="Tulis catatan kegiatan kamu untuk sesi ini… (min. 10 karakter)">{{ old('checkpoint_progress', $booking->logbook->checkpoint_progress ?? '') }}</textarea>
+
+                    {{-- Software installation report — checkbox defaults to the reservation choice --}}
+                    <div class="mt-4 pt-4 border-t border-rule">
+                        {{-- Hidden field so the boolean always posts, even when unchecked --}}
+                        <input type="hidden" name="needs_installation" :value="install ? '1' : '0'">
+
+                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                            <input type="checkbox" x-model="install"
+                                   class="mt-0.5 h-4 w-4 rounded border-rule-strong" style="accent-color:#4f46e5;">
+                            <span class="text-sm font-medium text-ink-900 leading-tight">
+                                Instalasi perangkat lunak
+                                <span class="block mt-0.5 text-xs font-normal text-ink-700/50">Centang jika kamu mengunduh atau memasang perangkat lunak pada sesi ini.</span>
+                            </span>
+                        </label>
+
+                        {{-- Software list — revealed only when the box is checked --}}
+                        <div x-show="install"
+                             style="{{ $installOn ? '' : 'display:none' }}"
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="mt-3">
+                            <div class="text-[10px] font-bold uppercase tracking-label text-ink-700/40 mb-2">Perangkat Lunak yang Diunduh / Diinstal</div>
+                            <textarea name="special_software" rows="3" :required="install"
+                                      class="form-textarea" style="resize:none;"
+                                      placeholder="Contoh: Python 3.12, Visual Studio Code, MATLAB R2024a…">{{ old('special_software', $booking->logbook->special_software ?? '') }}</textarea>
+                        </div>
+                    </div>
 
                     <div class="flex items-center justify-end pt-3">
                         <button type="submit" class="btn-mark btn-sm">
