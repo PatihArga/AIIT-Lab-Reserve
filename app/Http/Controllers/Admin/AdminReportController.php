@@ -52,11 +52,14 @@ class AdminReportController extends Controller
      */
     private function resolvePeriod(string $period): array
     {
+        // Cover the FULL natural span of each preset (matching 'week'), so
+        // approved upcoming reservations later in the period are included
+        // rather than cut off at "today".
         return match ($period) {
             'week'    => [now()->startOfWeek(Carbon::MONDAY), now()->endOfWeek(Carbon::SUNDAY)],
-            'quarter' => [now()->subMonths(2)->startOfMonth(), now()->endOfDay()],
-            'year'    => [now()->startOfYear(), now()->endOfDay()],
-            default   => [now()->startOfMonth(), now()->endOfDay()], // 'month'
+            'quarter' => [now()->subMonths(2)->startOfMonth(), now()->endOfMonth()],
+            'year'    => [now()->startOfYear(), now()->endOfYear()],
+            default   => [now()->startOfMonth(), now()->endOfMonth()], // 'month'
         };
     }
 }

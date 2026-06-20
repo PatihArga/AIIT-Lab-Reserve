@@ -171,15 +171,15 @@
                         </div>
                     </div>
 
-                @elseif (! $booking->logbook || empty($booking->logbook->session_target))
-                    {{-- Approved/completed but logbook (or its target field) not yet filled --}}
+                @elseif (! $booking->logbook || empty($booking->logbook->checkpoint_progress))
+                    {{-- Approved/completed but logbook not yet filled --}}
                     <div class="flex gap-3 p-4 rounded-lg border border-mark-300/50 bg-mark-50/60 mb-5">
                         <svg class="w-5 h-5 text-mark-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                         <p class="text-sm text-ink-700/80">
-                            Logbook belum lengkap. Lengkapi target sesi dan catatan progress.
+                            Logbook belum lengkap. Lengkapi catatan progress kegiatan.
                         </p>
                     </div>
                     {{-- Logbook form --}}
@@ -202,10 +202,6 @@
                         <div class="px-6 py-4 grid grid-cols-3 gap-4">
                             <div class="text-[11px] uppercase tracking-label font-semibold text-ink-700/50">Checkpoint</div>
                             <div class="col-span-2 text-sm text-ink-700/80 leading-relaxed whitespace-pre-line">{{ $booking->logbook->checkpoint_progress }}</div>
-                        </div>
-                        <div class="px-6 py-4 grid grid-cols-3 gap-4">
-                            <div class="text-[11px] uppercase tracking-label font-semibold text-ink-700/50">Target Sesi</div>
-                            <div class="col-span-2 text-sm text-ink-700/80 whitespace-pre-line">{{ $booking->logbook->session_target ?? '—' }}</div>
                         </div>
                         <div class="px-6 py-4 grid grid-cols-3 gap-4">
                             <div class="text-[11px] uppercase tracking-label font-semibold text-ink-700/50">Pembimbing</div>

@@ -15,7 +15,6 @@ class BookingLogbookController extends Controller
 
         $validated = $request->validate([
             'checkpoint_progress' => ['required', 'string', 'min:10', 'max:2000'],
-            'session_target'      => ['nullable', 'string', 'max:2000'],
             'supervisor_name'     => ['nullable', 'string', 'max:255'],
             'related_course'      => ['nullable', 'string', 'max:255'],
         ], [

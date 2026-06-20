@@ -10,7 +10,7 @@ class BookingLogbook extends Model
         'booking_id', 'category', 'checkpoint_progress',
         'related_course', 'supervisor_name', 'duration_sufficient',
         'special_software', 'needs_internet', 'needs_installation',
-        'external_devices', 'priority_level', 'priority_reason', 'session_target',
+        'external_devices', 'priority_level',
     ];
 
     protected function casts(): array

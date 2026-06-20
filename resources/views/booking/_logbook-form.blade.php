@@ -19,12 +19,6 @@
         <p class="form-hint">Deskripsikan secara singkat apa yang berhasil diselesaikan (min. 10 karakter).</p>
     </div>
 
-    <div class="form-field">
-        <label class="form-label">Target Sesi</label>
-        <textarea name="session_target" class="form-textarea" rows="3"
-                  placeholder="Apa yang ingin dicapai di akhir sesi ini?">{{ old('session_target', $lb->session_target ?? '') }}</textarea>
-    </div>
-
     <div class="grid grid-cols-2 gap-4">
         <div class="form-field">
             <label class="form-label">Nama Pembimbing</label>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 18, 2026 at 10:05 PM
+-- Generation Time: Jun 20, 2026 at 12:10 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -73,7 +73,21 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `auditable_type`, `auditabl
 (31, 4, 'booking.submitted', 'App\\Models\\Booking', 26, NULL, '{\"status\":\"submitted\",\"booking_type\":\"full_room\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:04:57'),
 (32, 1, 'booking.approved', 'App\\Models\\Booking', 26, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:05:21'),
 (33, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"online\"}', '{\"status\":\"maintenance\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-17 07:08:07'),
-(34, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"maintenance\"}', '{\"status\":\"online\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-18 19:44:14');
+(34, 1, 'computer.status_changed', 'App\\Models\\Computer', 1, '{\"status\":\"maintenance\"}', '{\"status\":\"online\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-18 19:44:14'),
+(35, 6, 'booking.submitted', 'App\\Models\\Booking', 27, NULL, '{\"status\":\"submitted\",\"booking_type\":\"computers_only\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 05:40:47'),
+(36, 1, 'booking.approved', 'App\\Models\\Booking', 27, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 05:42:08'),
+(37, 1, 'booking.completed', 'App\\Models\\Booking', 27, '{\"status\":\"approved\"}', '{\"status\":\"completed\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 05:42:20'),
+(38, 6, 'booking.submitted', 'App\\Models\\Booking', 28, NULL, '{\"status\":\"submitted\",\"booking_type\":\"full_room\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 07:22:24'),
+(39, 6, 'booking.cancelled', 'App\\Models\\Booking', 28, '{\"status\":\"submitted\"}', '{\"status\":\"cancelled\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 07:22:33'),
+(40, 1, 'settings.updated', NULL, NULL, '{\"lab_name\":\"Laboratorium Komputer UKRIDA\"}', '{\"lab_name\":\"AIIT\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 07:23:47'),
+(43, 6, 'logbook.updated', 'App\\Models\\Booking', 27, '{\"checkpoint_progress\":\"Tugas Akhir - SKD\",\"special_software\":null}', '{\"checkpoint_progress\":\"Tugas Akhir - SKD\\r\\n\\r\\nInstalling Python 3.12\\r\\ntraining\",\"special_software\":\"Python 3.12\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 07:56:01'),
+(49, 4, 'logbook.updated', 'App\\Models\\Booking', 26, '{\"checkpoint_progress\":\"Presentasi TA\\r\\n\\r\\n- Mnegunduh VS CODE\\r\\nffsfs\\r\\ndf\\r\\nsfds\",\"needs_installation\":false,\"special_software\":null}', '{\"checkpoint_progress\":\"Presentasi TA\\r\\n\\r\\ntimeline yang dikelompokkan per hari, dengan rel waktu di sisi kiri sebagai elemen tanda tangan visual, sehingga aktivitas terbaca seperti garis kronologis yang jelas, bukan deretan baris seragam. Saya pakai warna brand Navy #0D1B2E dan amber #F5B800 milik proyekmu, dan setiap jenis aksi punya warna titik (dot) yang konsisten supaya mudah dipindai.\",\"needs_installation\":true,\"special_software\":\"AntiGravity\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:13:08'),
+(50, 6, 'booking.submitted', 'App\\Models\\Booking', 29, NULL, '{\"status\":\"submitted\",\"booking_type\":\"computers_only\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:42:26'),
+(51, 1, 'booking.approved', 'App\\Models\\Booking', 29, '{\"status\":\"under_review\"}', '{\"status\":\"approved\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:42:41'),
+(52, 6, 'logbook.updated', 'App\\Models\\Booking', 27, '{\"special_software\":\"Python 3.12\"}', '{\"special_software\":\"Antigravity\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:42:58'),
+(53, 6, 'logbook.updated', 'App\\Models\\Booking', 27, '{\"checkpoint_progress\":\"Tugas Akhir - SKD\\r\\n\\r\\nInstalling Python 3.12\\r\\ntraining\"}', '{\"checkpoint_progress\":\"Tugas Akhir - SKD\\r\\n\\r\\nInstalling Antigravity\\r\\ntraining\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:43:08'),
+(54, 6, 'logbook.updated', 'App\\Models\\Booking', 29, '{\"checkpoint_progress\":\"Melakukan Project akademik\",\"special_software\":null}', '{\"checkpoint_progress\":\"Melakukan Project akademik\\r\\n\\r\\nmembuat UI untuk test model\",\"special_software\":\"Antigravity\"}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:43:41'),
+(55, 4, 'logbook.updated', 'App\\Models\\Booking', 26, '{\"needs_installation\":true,\"special_software\":\"AntiGravity\"}', '{\"needs_installation\":false,\"special_software\":null}', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', '2026-06-19 18:51:47');
 
 -- --------------------------------------------------------
 
@@ -117,7 +131,10 @@ INSERT INTO `bookings` (`id`, `booking_code`, `user_id`, `booking_type`, `room_s
 (23, 'LAB-0011', 2, 'room_only', 'shared', '2026-06-10', '14:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:49:05', '2026-06-07 11:49:21', 1, '2026-06-07 11:49:05', '2026-06-07 11:49:21'),
 (24, 'LAB-0012', 2, 'computers_only', NULL, '2026-06-10', '13:00:00', '16:00:00', 'approved', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:51:19', 1, '2026-06-07 11:50:49', '2026-06-07 11:51:19'),
 (25, 'LAB-0013', 2, 'computers_only', NULL, '2026-06-12', '14:00:00', '17:00:00', 'approved', NULL, NULL, '2026-06-12 04:51:00', '2026-06-12 06:05:57', 1, '2026-06-12 04:51:00', '2026-06-12 06:05:57'),
-(26, 'LAB-0014', 4, 'full_room', NULL, '2026-06-22', '09:00:00', '12:00:00', 'approved', NULL, NULL, '2026-06-17 07:04:57', '2026-06-17 07:05:21', 1, '2026-06-17 07:04:57', '2026-06-17 07:05:21');
+(26, 'LAB-0014', 4, 'full_room', NULL, '2026-06-22', '09:00:00', '12:00:00', 'approved', NULL, NULL, '2026-06-17 07:04:57', '2026-06-17 07:05:21', 1, '2026-06-17 07:04:57', '2026-06-17 07:05:21'),
+(27, 'LAB-0015', 6, 'computers_only', NULL, '2026-06-19', '12:30:00', '15:00:00', 'completed', NULL, NULL, '2026-06-19 05:40:47', '2026-06-19 05:42:08', 1, '2026-06-19 05:40:47', '2026-06-19 05:42:20'),
+(28, 'LAB-0016', 6, 'full_room', NULL, '2026-06-19', '10:30:00', '13:30:00', 'cancelled', NULL, NULL, '2026-06-19 07:22:24', NULL, NULL, '2026-06-19 07:22:24', '2026-06-19 07:22:33'),
+(29, 'LAB-0017', 6, 'computers_only', NULL, '2026-06-23', '09:30:00', '13:00:00', 'approved', NULL, NULL, '2026-06-19 18:42:26', '2026-06-19 18:42:41', 1, '2026-06-19 18:42:26', '2026-06-19 18:42:41');
 
 -- --------------------------------------------------------
 
@@ -154,7 +171,10 @@ INSERT INTO `booking_computers` (`id`, `booking_id`, `computer_id`) VALUES
 (31, 25, 1),
 (32, 26, 1),
 (33, 26, 2),
-(34, 26, 3);
+(34, 26, 3),
+(35, 27, 4),
+(36, 28, 7),
+(37, 29, 1);
 
 -- --------------------------------------------------------
 
@@ -175,8 +195,6 @@ CREATE TABLE `booking_logbooks` (
   `needs_installation` tinyint(1) DEFAULT NULL,
   `external_devices` text DEFAULT NULL,
   `priority_level` enum('normal','urgent') NOT NULL DEFAULT 'normal',
-  `priority_reason` text DEFAULT NULL,
-  `session_target` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -185,20 +203,23 @@ CREATE TABLE `booking_logbooks` (
 -- Dumping data for table `booking_logbooks`
 --
 
-INSERT INTO `booking_logbooks` (`id`, `booking_id`, `category`, `checkpoint_progress`, `related_course`, `supervisor_name`, `duration_sufficient`, `special_software`, `needs_internet`, `needs_installation`, `external_devices`, `priority_level`, `priority_reason`, `session_target`, `created_at`, `updated_at`) VALUES
-(5, 5, 'penelitian', 'Training AI untuk UAS', 'Kecerdasan Buatan', 'Dr. Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-17 17:58:12', '2026-06-14 19:06:55'),
-(6, 6, 'tugas_akhir', 'Sidang Akhir Skripsi', 'Tugas Akhir', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-17 21:14:10', '2026-05-17 21:14:10'),
-(7, 7, 'penelitian', 'Ingin melakukan penelitian algoritma random forest dan decision tree', 'Kecerdasan Buatan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-19 09:44:59', '2026-05-19 09:44:59'),
-(8, 8, 'penelitian', 'Ingin meneliti tentang algoritma random forest pada dbd', 'Machine Learning', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-20 06:03:50', '2026-05-20 06:03:50'),
-(9, 9, 'lainnya', 'Peminjaman untuk melakukan bimbingan', 'Bimbingan', 'Dr Bintang', NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-05-20 13:38:23', '2026-05-20 13:38:23'),
-(10, 10, 'project_akademik', 'Pembelajaran', 'Kecerdasan Tiruan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-20 15:09:33', '2026-05-20 15:09:33'),
-(11, 11, 'penelitian', 'Meneliti Dengue menggunakan AI', 'Kecerdasan Buatan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', NULL, NULL, '2026-05-26 16:08:52', '2026-05-26 16:08:52'),
-(20, 20, 'lainnya', 'Presentasi Tugas Akhir', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 08:09:03', '2026-06-07 08:09:03'),
-(21, 21, 'lainnya', 'Melakukan Rekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:40:10', '2026-06-07 11:40:10'),
-(23, 23, 'lainnya', 'Melakukan Perekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:49:05', '2026-06-07 11:49:05'),
-(24, 24, 'lainnya', 'Tugas Akhir 41023022', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-07 11:50:49', '2026-06-07 11:50:49'),
-(25, 25, 'lainnya', 'wdaaaaaaaaaaaaaa', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-12 04:51:00', '2026-06-14 19:12:11'),
-(26, 26, 'lainnya', 'Presentasi TA\r\n\r\n- Mnegunduh VS CODE\r\nffsfs\r\ndf\r\nsfds', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', NULL, NULL, '2026-06-17 07:04:57', '2026-06-17 07:15:25');
+INSERT INTO `booking_logbooks` (`id`, `booking_id`, `category`, `checkpoint_progress`, `related_course`, `supervisor_name`, `duration_sufficient`, `special_software`, `needs_internet`, `needs_installation`, `external_devices`, `priority_level`, `created_at`, `updated_at`) VALUES
+(5, 5, 'penelitian', 'Training AI untuk UAS', 'Kecerdasan Buatan', 'Dr. Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-17 17:58:12', '2026-06-14 19:06:55'),
+(6, 6, 'tugas_akhir', 'Sidang Akhir Skripsi', 'Tugas Akhir', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-17 21:14:10', '2026-05-17 21:14:10'),
+(7, 7, 'penelitian', 'Ingin melakukan penelitian algoritma random forest dan decision tree', 'Kecerdasan Buatan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-19 09:44:59', '2026-05-19 09:44:59'),
+(8, 8, 'penelitian', 'Ingin meneliti tentang algoritma random forest pada dbd', 'Machine Learning', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-20 06:03:50', '2026-05-20 06:03:50'),
+(9, 9, 'lainnya', 'Peminjaman untuk melakukan bimbingan', 'Bimbingan', 'Dr Bintang', NULL, NULL, 0, NULL, NULL, 'normal', '2026-05-20 13:38:23', '2026-05-20 13:38:23'),
+(10, 10, 'project_akademik', 'Pembelajaran', 'Kecerdasan Tiruan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-20 15:09:33', '2026-05-20 15:09:33'),
+(11, 11, 'penelitian', 'Meneliti Dengue menggunakan AI', 'Kecerdasan Buatan', 'Dr Bintang', NULL, NULL, 1, NULL, NULL, 'normal', '2026-05-26 16:08:52', '2026-05-26 16:08:52'),
+(20, 20, 'lainnya', 'Presentasi Tugas Akhir', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', '2026-06-07 08:09:03', '2026-06-07 08:09:03'),
+(21, 21, 'lainnya', 'Melakukan Rekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', '2026-06-07 11:40:10', '2026-06-07 11:40:10'),
+(23, 23, 'lainnya', 'Melakukan Perekaman', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', '2026-06-07 11:49:05', '2026-06-07 11:49:05'),
+(24, 24, 'lainnya', 'Tugas Akhir 41023022', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', '2026-06-07 11:50:49', '2026-06-07 11:50:49'),
+(25, 25, 'lainnya', 'wdaaaaaaaaaaaaaa', NULL, NULL, NULL, NULL, 0, NULL, NULL, 'normal', '2026-06-12 04:51:00', '2026-06-14 19:12:11'),
+(26, 26, 'lainnya', 'Presentasi TA\r\n\r\ntimeline yang dikelompokkan per hari, dengan rel waktu di sisi kiri sebagai elemen tanda tangan visual, sehingga aktivitas terbaca seperti garis kronologis yang jelas, bukan deretan baris seragam. Saya pakai warna brand Navy #0D1B2E dan amber #F5B800 milik proyekmu, dan setiap jenis aksi punya warna titik (dot) yang konsisten supaya mudah dipindai.', NULL, NULL, NULL, NULL, 0, 0, NULL, 'normal', '2026-06-17 07:04:57', '2026-06-19 18:51:47'),
+(27, 27, 'tugas_akhir', 'Tugas Akhir - SKD\r\n\r\nInstalling Antigravity\r\ntraining', NULL, NULL, NULL, 'Antigravity', 1, 1, NULL, 'normal', '2026-06-19 05:40:47', '2026-06-19 18:43:08'),
+(28, 28, 'tugas_akhir', 'awdadadawd', NULL, NULL, NULL, NULL, 1, 0, NULL, 'normal', '2026-06-19 07:22:24', '2026-06-19 07:22:24'),
+(29, 29, 'project_akademik', 'Melakukan Project akademik\r\n\r\nmembuat UI untuk test model', NULL, NULL, NULL, 'Antigravity', 1, 1, NULL, 'normal', '2026-06-19 18:42:26', '2026-06-19 18:43:41');
 
 -- --------------------------------------------------------
 
@@ -325,7 +346,7 @@ CREATE TABLE `lab_settings` (
 --
 
 INSERT INTO `lab_settings` (`id`, `key`, `value`, `description`, `updated_at`) VALUES
-(1, 'lab_name', 'Laboratorium Komputer UKRIDA', 'Nama laboratorium', '2026-06-08 15:15:18'),
+(1, 'lab_name', 'AIIT', 'Nama laboratorium', '2026-06-19 07:23:47'),
 (2, 'admin_email', 'admin@ukrida.ac.id', 'Email admin penerima notifikasi', '2026-06-08 15:15:18'),
 (3, 'buffer_minutes', '15', 'Waktu buffer antar sesi (menit)', '2026-06-08 15:15:19'),
 (4, 'operating_start', '08:00', 'Jam buka laboratorium', '2026-05-07 16:38:42'),
@@ -365,7 +386,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (13, '2026_05_26_000002_add_gmail_to_users', 3),
 (14, '2026_06_03_000001_add_password_to_study_programs', 4),
 (15, '2026_06_08_000001_make_audit_auditable_nullable', 5),
-(16, '2026_06_14_000001_drop_gmail_from_users', 6);
+(16, '2026_06_14_000001_drop_gmail_from_users', 6),
+(17, '2026_06_20_000001_drop_unused_columns_from_booking_logbooks_table', 7);
 
 -- --------------------------------------------------------
 
@@ -399,8 +421,8 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('LkYLPtyZn6ClvwNhq1NxBnLDKHbgxrlCmgV0TjO9', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo0OntzOjY6Il90b2tlbiI7czo0MDoidFVGd0l2N1hUYWJNSGw1V1RxRzN4NXEzQ3B2eU9ZSE5qU2RUS0RHeiI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NTc6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljL2FkbWluL2F1ZGl0LWxvZyI7czo1OiJyb3V0ZSI7czoyMToiYWRtaW4uYXVkaXQtbG9nLmluZGV4Ijt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9', 1781812680),
-('RMSVUKbNEAnqltaPJkhhu4L09dZQll52oNJTFYKD', 6, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiekZDbkVxSmlISVhRamkzSnBNSGZNWkhLMlVpek9hVzNoZDNvN3c3SiI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjUxOiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9kYXNoYm9hcmQiO3M6NToicm91dGUiO3M6OToiZGFzaGJvYXJkIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1OiJsb2dpbiI7YTowOnt9czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6Njt9', 1781812663);
+('bbNA0w0RufnYMha08so0YAt9mlVv9z1hxVYoBcX1', 1, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiSnJwcTdZM0RjWnN6V2c1ZWVXdGtMbWg2QWdyNDNSTnBKNzdWclB0QSI7czozOiJ1cmwiO2E6MDp7fXM6OToiX3ByZXZpb3VzIjthOjI6e3M6MzoidXJsIjtzOjU1OiJodHRwOi8vbG9jYWxob3N0L1VLUklEQV9MYWJSZXNlcnZlL3B1YmxpYy9hZG1pbi9yZXBvcnRzIjtzOjU6InJvdXRlIjtzOjE5OiJhZG1pbi5yZXBvcnRzLmluZGV4Ijt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9', 1781895122),
+('G5WFXzdS11daZHtwbFnCN7h2zu36iKllnzOCS6kL', 4, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36', 'YTo1OntzOjY6Il90b2tlbiI7czo0MDoiNktjUUdPRWtOMUhFdnJMdzZzN0tsWHp6a3VrMUZCclVHV3pvRFhOSSI7czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDk6Imh0dHA6Ly9sb2NhbGhvc3QvVUtSSURBX0xhYlJlc2VydmUvcHVibGljL2xvZ2Jvb2siO3M6NToicm91dGUiO3M6MTM6ImxvZ2Jvb2suaW5kZXgiO31zOjU6ImxvZ2luIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aTo0O30=', 1781895108);
 
 -- --------------------------------------------------------
 
@@ -500,11 +522,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `study_program_id`, `name`, `email`, `password`, `role`, `is_active`, `last_login_at`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Administrator', 'admin@ukrida.ac.id', '$2y$12$MrjedimeAUsRlY5szvN3QOhBZFWmBR5m9p1d25uYFf.c60jXZyVRK', 'admin', 1, '2026-06-18 19:28:24', NULL, '2026-05-07 16:38:42', '2026-06-18 19:28:24'),
+(1, NULL, 'Administrator', 'admin@ukrida.ac.id', '$2y$12$MrjedimeAUsRlY5szvN3QOhBZFWmBR5m9p1d25uYFf.c60jXZyVRK', 'admin', 1, '2026-06-19 15:22:23', NULL, '2026-05-07 16:38:42', '2026-06-19 15:22:23'),
 (2, 1, 'Dr. Budi Santoso', 'budi@ti.ukrida.ac.id', '$2y$12$zetlFn7awvIuLq9Jyt/.POT/M8zR934BRf9458jriV/C3nUPsH2tS', 'lecturer', 1, '2026-06-14 18:39:30', NULL, '2026-05-07 19:42:22', '2026-06-14 18:39:30'),
 (3, 1, 'Tim Alpha', 'tim.alpha@ti.ukrida.ac.id', '$2y$12$Q3kHegXI2rpbitL761e2s.LLdwf8qGZNzPU4s3meXTg7CxF6QhWI6', 'team', 1, '2026-06-07 11:33:30', NULL, '2026-05-07 19:42:22', '2026-06-07 11:33:30'),
-(4, 1, 'Bintang Talenta', 'bintang.412023022@civitas.ukrida.ac.id', '$2y$12$4rccVTFuRVKMzrYeUUQqV.m1wPjn/63bJH870c4JUmmQPJC1wGq2.', 'lecturer', 1, '2026-06-18 19:24:34', NULL, '2026-06-14 06:54:52', '2026-06-18 19:24:34'),
-(6, 1, 'Team Joy', 'Sanders.412023020@civitas.ukrida.ac.id', '$2y$12$hu.U.FrJ4.X01VvLGo6tFOCkAaCq.f247bSvbab0yq.P9zThmQSuK', 'team', 1, '2026-06-18 19:29:13', NULL, '2026-06-14 18:34:21', '2026-06-18 19:29:13');
+(4, 1, 'Bintang Talenta', 'bintang.412023022@civitas.ukrida.ac.id', '$2y$12$4rccVTFuRVKMzrYeUUQqV.m1wPjn/63bJH870c4JUmmQPJC1wGq2.', 'lecturer', 1, '2026-06-19 18:44:42', NULL, '2026-06-14 06:54:52', '2026-06-19 18:44:42'),
+(6, 1, 'Team Joy', 'Sanders.412023020@civitas.ukrida.ac.id', '$2y$12$hu.U.FrJ4.X01VvLGo6tFOCkAaCq.f247bSvbab0yq.P9zThmQSuK', 'team', 1, '2026-06-19 18:41:23', NULL, '2026-06-14 18:34:21', '2026-06-19 18:41:23');
 
 --
 -- Indexes for dumped tables
@@ -652,25 +674,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `booking_computers`
 --
 ALTER TABLE `booking_computers`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `booking_logbooks`
 --
 ALTER TABLE `booking_logbooks`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `computers`
