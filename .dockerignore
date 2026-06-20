@@ -1,0 +1,22 @@
+# Keep the build context small — the image only COPYs docker/entrypoint.sh.
+# vendor / node_modules / public/build are provided by volumes and built at runtime.
+.git
+.github
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/logs/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/.idea
+/.vscode
+/.fleet
+/.nova
+/.zed
+*.log
+.env
+.env.backup
+.env.production

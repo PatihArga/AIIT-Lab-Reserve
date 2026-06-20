@@ -1,0 +1,78 @@
+# UKRIDA LabReserve — one-command local stack.
+#
+#   docker compose up -d --build
+#
+# Services:
+#   app         Laravel (php artisan serve) → http://localhost:8000
+#   db          MariaDB 11 (host port 3307 to avoid clashing with XAMPP's MySQL)
+#   phpmyadmin  Database GUI → http://localhost:8080
+#
+# The DB_* values below override whatever is in .env so the app talks to the
+# `db` service instead of 127.0.0.1 (Laravel does not overwrite real env vars).
+
+name: aiit-lab-reserve
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aiit-lab-reserve-app
+    container_name: AIIT_Lab_Reserve-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: UKRIDA_LabReserve
+      DB_USERNAME: labreserve
+      DB_PASSWORD: secret
+    volumes:
+      - ./:/var/www/html                       # live source — edit PHP/Blade without rebuilding
+      - ./.env.docker:/var/www/html/.env:ro    # container uses its own .env (host .env stays for XAMPP)
+      - vendor:/var/www/html/vendor            # keep Composer deps out of the host bind mount
+      - node_modules:/var/www/html/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb:11
+    container_name: AIIT_Lab_Reserve-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: UKRIDA_LabReserve
+      MARIADB_USER: labreserve
+      MARIADB_PASSWORD: secret
+      MARIADB_ROOT_PASSWORD: secret
+    ports:
+      - "3307:3306"                   # host:container — connect external tools to localhost:3307
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: AIIT_Lab_Reserve-pma
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  vendor:
+  node_modules:

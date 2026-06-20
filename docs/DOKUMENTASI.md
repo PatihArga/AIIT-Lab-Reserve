@@ -24,6 +24,7 @@ Aplikasi web untuk **reservasi/peminjaman Laboratorium Komputer UKRIDA**. Dosen 
 14. [Aturan Bisnis Lab](#14-aturan-bisnis-lab)
 15. [Perintah Artisan yang Berguna](#15-perintah-artisan-yang-berguna)
 16. [Pemecahan Masalah (Troubleshooting)](#16-pemecahan-masalah-troubleshooting)
+17. [Lampiran A — Menjalankan dengan Docker](#17-lampiran-a--menjalankan-dengan-docker)
 
 ---
 
@@ -487,6 +488,74 @@ npm run dev                      # (opsional) Vite dev server
 | Kena rate limit saat login                           | Maksimal 5 percobaan gagal per email+IP. Tunggu sesuai pesan, atau bersihkan cache: `php artisan cache:clear`. |
 | Perubahan konfigurasi `.env` tidak terbaca           | Jalankan **`php artisan config:clear`**.                                                                    |
 | Tombol "Cetak PDF" tidak menghasilkan PDF            | Pada dialog cetak browser, pilih tujuan **"Save as PDF"**. Fitur ini memang memakai cetak bawaan browser.   |
+
+---
+
+## 17. Lampiran A — Menjalankan dengan Docker
+
+Sebagai alternatif XAMPP, proyek ini menyertakan konfigurasi Docker agar **database (MariaDB) dan aplikasi berjalan dengan satu perintah** — tanpa perlu memasang PHP, Composer, Node, atau MySQL secara terpisah.
+
+### A.1. Prasyarat
+
+- **Docker Desktop** (Windows/Mac) atau Docker Engine + Compose v2 (Linux). Pastikan Docker sedang berjalan.
+
+### A.2. Berkas yang terlibat
+
+| Berkas                  | Fungsi                                                                              |
+|-------------------------|-------------------------------------------------------------------------------------|
+| `Dockerfile`            | Image aplikasi: PHP 8.2 + ekstensi, Composer, dan Node 20.                          |
+| `docker-compose.yml`    | Mendefinisikan 3 layanan: `app`, `db` (MariaDB 11), dan `phpmyadmin`.               |
+| `docker/entrypoint.sh`  | Skrip bootstrap: install dependensi → build aset → migrasi → seed → jalankan server. |
+| `.env.docker`           | Template `.env` yang dipakai bila belum ada `.env`.                                 |
+| `.dockerignore`         | Memperkecil konteks build.                                                          |
+
+### A.3. Menjalankan
+
+Dari folder proyek:
+
+```bash
+docker compose up -d --build
+```
+
+Pada **boot pertama** container `app` otomatis melakukan (butuh beberapa menit):
+
+1. Memakai `.env.docker` sebagai `.env` di dalam container (berkas `.env` XAMPP Anda tidak tersentuh).
+2. `composer install` — memasang dependensi PHP.
+3. `php artisan key:generate` — membuat application key.
+4. `npm install` lalu `npm run build` — membangun aset frontend.
+5. Menunggu database siap, lalu `php artisan migrate`.
+6. `php artisan db:seed` — **hanya jika database masih kosong** (agar restart tidak mereset data).
+7. Menjalankan `php artisan serve` di port 8000.
+
+> Boot berikutnya jauh lebih cepat karena `vendor`, `node_modules`, dan data DB sudah tersimpan di volume.
+
+### A.4. Alamat akses
+
+| Layanan          | URL / Host                  | Keterangan                                            |
+|------------------|-----------------------------|-------------------------------------------------------|
+| Aplikasi         | `http://localhost:8000`     | Halaman utama → diarahkan ke login.                   |
+| phpMyAdmin       | `http://localhost:8080`     | GUI database (host: `db`, user `labreserve` / `secret`, atau `root` / `secret`). |
+| Database (luar)  | `localhost:3307`            | Untuk klien DB eksternal. Port **3307** dipakai agar tidak bentrok dengan MySQL XAMPP. |
+
+Akun default sama dengan [bagian 8](#8-akun-default) (admin `admin@ukrida.ac.id` / `Admin@123`, dst.).
+
+### A.5. Perintah yang berguna
+
+```bash
+docker compose logs -f app           # Lihat log aplikasi (pantau proses boot pertama)
+docker compose exec app php artisan migrate   # Jalankan perintah artisan di dalam container
+docker compose exec app npm run build         # Bangun ulang aset setelah ubah CSS/JS
+docker compose exec app bash         # Masuk ke shell container app
+docker compose stop                  # Hentikan tanpa menghapus
+docker compose down                  # Hentikan & hapus container (data DB tetap aman di volume)
+docker compose down -v               # Hentikan & HAPUS data DB (reset total — migrasi+seed ulang)
+```
+
+### A.6. Catatan
+
+- **Sumber kode di-mount langsung** (`./` → `/var/www/html`), sehingga perubahan file PHP/Blade langsung tampak tanpa rebuild. Untuk perubahan **CSS/JS/Tailwind**, jalankan ulang `npm run build` (lihat A.5) karena aset dibangun sekali saat boot.
+- Container memakai berkas **`.env.docker`** (di-mount sebagai `.env` di dalam container, hanya-baca) yang sudah berisi `DB_HOST=db`. Berkas `.env` milik XAMPP Anda (yang memakai `127.0.0.1`) **tidak tersentuh** dan tetap aman. Ini penting karena `php artisan serve` tidak meneruskan variabel `DB_*` dari environment ke server bawaannya — jadi konfigurasi DB harus ada di `.env` container.
+- Kata sandi default DB (`secret`) hanya untuk pemakaian lokal. Ganti untuk lingkungan yang dapat diakses publik.
 
 ---
 
