@@ -76,7 +76,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         // Phase 8 (still closures — reports, audit log, settings)
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export-pdf', [AdminReportController::class, 'exportPdf'])->name('reports.export-pdf');
         Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit-log.index');
+        Route::get('/audit-log/export-pdf', [AdminAuditLogController::class, 'exportPdf'])->name('audit-log.export-pdf');
         Route::get('/settings',  [AdminSettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings',  [AdminSettingsController::class, 'update'])->name('settings.update');
     });

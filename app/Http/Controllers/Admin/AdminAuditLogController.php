@@ -8,8 +8,11 @@ use App\Models\Booking;
 use App\Models\Computer;
 use App\Models\Team;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class AdminAuditLogController extends Controller
@@ -41,6 +44,49 @@ class AdminAuditLogController extends Controller
 
     public function index(Request $request): View
     {
+        $query = $this->buildQuery($request);
+
+        $stats = $this->statsFor($query);
+
+        $logs = $query->paginate(20)->withQueryString()->through(fn ($log) => $this->present($log));
+
+        $actions = AuditLog::distinct()->orderBy('action')->pluck('action');
+        $users   = User::whereIn('id', AuditLog::whereNotNull('user_id')->distinct()->pluck('user_id'))
+            ->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.audit-log.index', compact('logs', 'actions', 'users', 'stats'));
+    }
+
+    /**
+     * Server-side PDF export of the audit log honouring the active filters.
+     * Pagination is dropped (capped at 500 rows) so the document is a single
+     * continuous, filtered timeline.
+     */
+    public function exportPdf(Request $request): Response
+    {
+        $query = $this->buildQuery($request);
+
+        $stats = $this->statsFor($query);
+
+        $logs = $query->limit(500)->get()->map(fn ($log) => $this->present($log));
+
+        $pdf = Pdf::loadView('admin.audit-log.pdf', [
+            'logs'          => $logs,
+            'stats'         => $stats,
+            'filterSummary' => $this->filterSummary($request),
+        ])->setPaper('a4', 'portrait');
+
+        $filename = 'Audit-log AIIT - ' . now()->locale('id')->translatedFormat('d F Y') . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Build the filtered audit-log query shared by the screen and the PDF
+     * export. Eager-loads + ordering applied; pagination is NOT.
+     */
+    private function buildQuery(Request $request): Builder
+    {
         $query = AuditLog::with(['user', 'auditable'])->latest('created_at')->latest('id');
 
         // Action filter is a checkbox group (`actions[]`). A hidden `af` marker
@@ -67,28 +113,51 @@ class AdminAuditLogController extends Controller
             });
         }
 
-        // Counts that mirror the active filters (computed before pagination).
-        $filteredTotal = (clone $query)->count();
-        $filteredToday = (clone $query)->whereDate('created_at', today())->count();
+        return $query;
+    }
 
-        $logs = $query->paginate(20)->withQueryString()->through(fn ($log) => $this->present($log));
-
-        $actions = AuditLog::distinct()->orderBy('action')->pluck('action');
-        $users   = User::whereIn('id', AuditLog::whereNotNull('user_id')->distinct()->pluck('user_id'))
-            ->orderBy('name')->get(['id', 'name']);
-
-        $stats = [
+    /**
+     * Stats block: total/today mirror the active filter; processed/active_users
+     * stay system-wide.
+     *
+     * @return array<string, int>
+     */
+    private function statsFor(Builder $query): array
+    {
+        return [
             // These two reflect the current filter selection.
-            'total'        => $filteredTotal,
-            'today'        => $filteredToday,
+            'total'        => (clone $query)->count(),
+            'today'        => (clone $query)->whereDate('created_at', today())->count(),
             // These remain system-wide.
             'processed'    => AuditLog::whereIn('action', [
                 'booking.approved', 'booking.rejected', 'booking.auto_rejected', 'booking.completed',
             ])->count(),
             'active_users' => AuditLog::whereNotNull('user_id')->distinct()->count('user_id'),
         ];
+    }
 
-        return view('admin.audit-log.index', compact('logs', 'actions', 'users', 'stats'));
+    /** Short human description of the active filters, for the PDF header. */
+    private function filterSummary(Request $request): string
+    {
+        $parts = [];
+
+        if ($request->has('af')) {
+            $count = count((array) $request->input('actions', []));
+            $parts[] = $count > 0 ? "{$count} jenis aksi" : 'tanpa aksi';
+        }
+        if ($request->filled('user_id') && $request->user_id !== 'all') {
+            $parts[] = 'oleh ' . (User::find($request->user_id)?->name ?? 'pengguna');
+        }
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $from = $request->filled('date_from') ? Carbon::parse($request->date_from)->translatedFormat('d M Y') : '…';
+            $to   = $request->filled('date_to') ? Carbon::parse($request->date_to)->translatedFormat('d M Y') : '…';
+            $parts[] = "{$from} – {$to}";
+        }
+        if ($request->filled('q')) {
+            $parts[] = 'pencarian "' . $request->q . '"';
+        }
+
+        return $parts === [] ? 'Semua aktivitas' : implode(' · ', $parts);
     }
 
     /** Flatten one log row into the shape the view renders. */
