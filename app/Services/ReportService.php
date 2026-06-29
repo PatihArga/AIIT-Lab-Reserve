@@ -193,7 +193,7 @@ class ReportService
 
     private function computerUsage(Carbon $from, Carbon $to): array
     {
-        $computers = Computer::orderBy('unit_number')->get(['id', 'label', 'status']);
+        $computers = Computer::orderBy('unit_number')->get(['id', 'label']);
         $availableHoursPerUnit = $this->availableHoursPerUnit($from, $to);
 
         // Get booked minutes per computer (approved + completed only)
@@ -216,8 +216,10 @@ class ReportService
             ->select(DB::raw('SUM(TIMESTAMPDIFF(MINUTE, start_time, end_time)) as total_minutes'))
             ->value('total_minutes') ?? 0;
 
+        // Usage is historical: it reflects bookings in the range and is
+        // deliberately independent of a unit's CURRENT status. Changing a
+        // computer to maintenance/offline must not erase its past usage here.
         return $computers->map(function ($c) use ($pcMinutes, $fullRoomMinutes, $availableHoursPerUnit) {
-            $isMaint = $c->status !== 'online';
             $minutes = ($pcMinutes[$c->id] ?? 0) + $fullRoomMinutes;
             $hours   = round($minutes / 60, 1);
             $pct     = $availableHoursPerUnit > 0
@@ -225,10 +227,9 @@ class ReportService
                 : 0;
 
             return [
-                'label'       => $c->label,
-                'hours'       => $hours,
-                'pct'         => $isMaint ? 0 : $pct,
-                'maintenance' => $isMaint,
+                'label' => $c->label,
+                'hours' => $hours,
+                'pct'   => $pct,
             ];
         })->toArray();
     }

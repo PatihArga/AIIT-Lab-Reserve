@@ -29,7 +29,7 @@
     $pcs   = $report['computerUsage'];
     $pcMax = 0;
     foreach ($pcs as $p) {
-        if (! $p['maintenance']) { $pcMax = max($pcMax, $p['pct']); }
+        $pcMax = max($pcMax, $p['pct']);
     }
 
     $installs = $report['installations'];
@@ -87,7 +87,6 @@
         .bartrack { width: 150px; height: 8px; background-color: #edeff6; border-radius: 4px; }
         .barfill { height: 8px; border-radius: 4px; background-color: #0A1A47; }
         .barfill.amber { background-color: #F5B800; }
-        .barfill.maint { background-color: #cfd4e2; }
 
         .badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 8px; font-weight: bold; }
         .badge.all { background-color: #fff3cc; color: #9a7400; }
@@ -138,7 +137,7 @@
             </td>
             <td>
                 <div class="kpi-label">Rata-rata Durasi</div>
-                <div class="kpi-value">{{ $num($s['avg_duration']) }}<span class="u">j</span></div>
+                <div class="kpi-value">{{ $num($s['avg_duration']) }}<span class="u"> jam</span></div>
                 <div class="kpi-sub">per sesi peminjaman</div>
             </td>
         </tr>
@@ -167,13 +166,13 @@
                                 <div class="barfill amber" style="width: {{ max($pct, $w['value'] > 0 ? 3 : 0) }}%;"></div>
                             </div>
                         </td>
-                        <td class="num mono">{{ $num($w['value']) }} j</td>
+                        <td class="num mono">{{ $num($w['value']) }} jam</td>
                     </tr>
                 @endforeach
                 <tr class="total">
                     <td colspan="2">Puncak pada {{ $peakWeek['label'] ?? '—' }}</td>
                     <td></td>
-                    <td class="num mono">{{ $num($weeklyTotal) }} j</td>
+                    <td class="num mono">{{ $num($weeklyTotal) }} jam</td>
                 </tr>
             </tbody>
         </table>
@@ -231,13 +230,13 @@
                         <td>{{ $u['name'] }}</td>
                         <td>{{ $u['role'] }}</td>
                         <td class="num mono">{{ $u['count'] }}</td>
-                        <td class="num mono">{{ $num($u['hours']) }} j</td>
+                        <td class="num mono">{{ $num($u['hours']) }} jam</td>
                     </tr>
                 @endforeach
                 <tr class="total">
                     <td colspan="3">{{ count($top) }} pengguna</td>
                     <td class="num mono">{{ $topReservasi }}</td>
-                    <td class="num mono">{{ $num($topHours) }} j</td>
+                    <td class="num mono">{{ $num($topHours) }} jam</td>
                 </tr>
             </tbody>
         </table>
@@ -259,20 +258,16 @@
             </thead>
             <tbody>
                 @foreach ($pcs as $pc)
-                    @php $hot = ! $pc['maintenance'] && $pc['pct'] > 0 && $pc['pct'] === $pcMax; @endphp
+                    @php $hot = $pc['pct'] > 0 && $pc['pct'] === $pcMax; @endphp
                     <tr>
                         <td class="mono">{{ $pc['label'] }}</td>
                         <td>
                             <div class="bartrack">
-                                @if ($pc['maintenance'])
-                                    <div class="barfill maint" style="width: 100%;"></div>
-                                @else
-                                    <div class="barfill {{ $hot ? 'amber' : '' }}" style="width: {{ max($pc['pct'], 1) }}%;"></div>
-                                @endif
+                                <div class="barfill {{ $hot ? 'amber' : '' }}" style="width: {{ max($pc['pct'], 1) }}%;"></div>
                             </div>
                         </td>
-                        <td class="num mono">{{ $pc['maintenance'] ? '—' : $num($pc['hours']) . ' j' }}</td>
-                        <td class="num mono">{{ $pc['maintenance'] ? 'Maintenance' : $pc['pct'] . '%' }}</td>
+                        <td class="num mono">{{ $num($pc['hours']) }} jam</td>
+                        <td class="num mono">{{ $pc['pct'] }}%</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -67,7 +67,7 @@
         $pcs   = $report['computerUsage'];
         $pcMax = 0;
         foreach ($pcs as $p) {
-            if (! $p['maintenance']) { $pcMax = max($pcMax, $p['pct']); }
+            $pcMax = max($pcMax, $p['pct']);
         }
 
         // Software installation reports.
@@ -158,7 +158,7 @@
                 </span>
                 <span class="text-[0.7rem] font-semibold uppercase tracking-label text-ink-700/50">Rata-rata Durasi</span>
             </div>
-            <div class="font-mono text-3xl sm:text-4xl font-bold text-ink-900 leading-none">{{ $num($s['avg_duration']) }}<span class="text-xl text-ink-700">j</span></div>
+            <div class="font-mono text-3xl sm:text-4xl font-bold text-ink-900 leading-none">{{ $num($s['avg_duration']) }}<span class="text-lg text-ink-700"> jam</span></div>
             <div class="text-xs text-ink-700/60 mt-2.5">per sesi peminjaman</div>
         </div>
     </div>
@@ -177,13 +177,13 @@
                 <div class="space-y-4">
                     @foreach ($weekly as $w)
                         @php $pct = $w['max'] > 0 ? round(($w['value'] / $w['max']) * 100) : 0; @endphp
-                        <div class="grid grid-cols-[34px_1fr_56px] items-center gap-3.5">
+                        <div class="grid grid-cols-[34px_1fr_72px] items-center gap-3.5">
                             <span class="font-mono text-xs font-semibold text-ink-700/60">{{ $w['label'] }}</span>
                             <div class="h-3.5 rounded-full bg-ink-50 overflow-hidden" title="{{ $w['range'] }}">
                                 <div class="h-full rounded-full transition-all {{ $w['value'] > 0 ? 'bg-mark-500' : 'bg-rule-strong' }}"
                                      style="width: {{ max($pct, $w['value'] > 0 ? 2 : 0) }}%"></div>
                             </div>
-                            <span class="font-mono text-[13px] font-semibold text-right {{ $w['value'] > 0 ? 'text-ink-900' : 'text-ink-700/40' }}">{{ $num($w['value']) }} j</span>
+                            <span class="font-mono text-[13px] font-semibold text-right {{ $w['value'] > 0 ? 'text-ink-900' : 'text-ink-700/40' }}">{{ $num($w['value']) }} jam</span>
                         </div>
                     @endforeach
                 </div>
@@ -273,7 +273,7 @@
                                     </div>
                                 </td>
                                 <td class="text-right font-mono font-semibold text-ink-700 align-middle">{{ $u['count'] }}</td>
-                                <td class="text-right font-mono font-semibold text-ink-900 align-middle">{{ $num($u['hours']) }} j</td>
+                                <td class="text-right font-mono font-semibold text-ink-900 align-middle">{{ $num($u['hours']) }} jam</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -298,18 +298,14 @@
             @if (count($pcs) > 0)
                 <div class="flex flex-col gap-3">
                     @foreach ($pcs as $pc)
-                        @php $hot = ! $pc['maintenance'] && $pc['pct'] > 0 && $pc['pct'] === $pcMax; @endphp
+                        @php $hot = $pc['pct'] > 0 && $pc['pct'] === $pcMax; @endphp
                         <div class="grid grid-cols-[52px_1fr_42px] items-center gap-3">
-                            <span class="font-mono text-xs font-semibold {{ $pc['maintenance'] ? 'text-ink-700/30' : 'text-ink-700/60' }}">{{ $pc['label'] }}</span>
+                            <span class="font-mono text-xs font-semibold text-ink-700/60">{{ $pc['label'] }}</span>
                             <div class="h-2.5 rounded-full bg-ink-50 overflow-hidden">
-                                @if ($pc['maintenance'])
-                                    <div class="h-full w-full bg-rule-strong/40"></div>
-                                @else
-                                    <div class="h-full rounded-full {{ $hot ? 'bg-mark-500' : 'bg-ink-700' }}" style="width: {{ $pc['pct'] }}%"></div>
-                                @endif
+                                <div class="h-full rounded-full {{ $hot ? 'bg-mark-500' : 'bg-ink-700' }}" style="width: {{ $pc['pct'] }}%"></div>
                             </div>
-                            <span class="font-mono text-[11.5px] font-semibold text-right {{ $pc['maintenance'] ? 'text-ink-700/30' : 'text-ink-700/50' }}">
-                                {{ $pc['maintenance'] ? '—' : $pc['pct'] . '%' }}
+                            <span class="font-mono text-[11.5px] font-semibold text-right text-ink-700/50">
+                                {{ $pc['pct'] }}%
                             </span>
                         </div>
                     @endforeach

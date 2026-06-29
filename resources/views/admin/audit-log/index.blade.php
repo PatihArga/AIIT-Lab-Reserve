@@ -6,11 +6,32 @@
             title="Audit Log"
             meta="Riwayat semua aktivitas sistem">
             <x-slot:actions>
-                <a href="{{ route('admin.audit-log.export-pdf', request()->query()) }}"
-                   class="btn-secondary btn-sm" title="Unduh audit log sebagai PDF">
-                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Unduh PDF
-                </a>
+                {{-- Export dropdown: pick a time range for the PDF. Each option
+                     forwards the active on-screen filters (action/user/search);
+                     the period presets set the date window for the export. --}}
+                <div x-data="{ open: false }" class="relative">
+                    <button type="button" @click="open = !open"
+                            class="btn-secondary btn-sm" title="Unduh audit log sebagai PDF">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Unduh PDF
+                        <svg class="w-3 h-3 text-ink-700/40 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+
+                    <div x-show="open" @click.outside="open = false" style="display:none"
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute right-0 z-30 mt-1 w-56 bg-white border border-rule rounded-lg shadow-modal p-1.5">
+                        <div class="px-2 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-label text-ink-700/50">Rentang waktu</div>
+                        @php
+                            $exportItem = 'block px-2.5 py-2 text-[13px] font-medium rounded-md text-ink-700/80 hover:bg-ink-50 hover:text-ink-900 transition-colors';
+                        @endphp
+                        <a href="{{ route('admin.audit-log.export-pdf', request()->query()) }}" class="{{ $exportItem }}">Sesuai filter di layar</a>
+                        <a href="{{ route('admin.audit-log.export-pdf', array_merge(request()->query(), ['period' => 'month'])) }}" class="{{ $exportItem }}">Bulan ini</a>
+                        <a href="{{ route('admin.audit-log.export-pdf', array_merge(request()->query(), ['period' => '2month'])) }}" class="{{ $exportItem }}">2 bulan terakhir</a>
+                        <a href="{{ route('admin.audit-log.export-pdf', array_merge(request()->query(), ['period' => '3month'])) }}" class="{{ $exportItem }}">3 bulan terakhir</a>
+                    </div>
+                </div>
             </x-slot:actions>
         </x-page-header>
     </x-slot:header>

@@ -59,16 +59,22 @@ class AdminAuditLogController extends Controller
 
     /**
      * Server-side PDF export of the audit log honouring the active filters.
-     * Pagination is dropped (capped at 500 rows) so the document is a single
+     * Pagination is dropped (capped at 1000 rows) so the document is a single
      * continuous, filtered timeline.
+     *
+     * An optional `period` preset (month / 2month / 3month) sets the date
+     * window for the export and takes precedence over manual date inputs; the
+     * action / user / search filters still apply on top of it.
      */
     public function exportPdf(Request $request): Response
     {
-        $query = $this->buildQuery($request);
+        $range = $this->resolvePeriod($request->input('period'));
+
+        $query = $this->buildQuery($request, $range);
 
         $stats = $this->statsFor($query);
 
-        $logs = $query->limit(500)->get()->map(fn ($log) => $this->present($log));
+        $logs = $query->limit(1000)->get()->map(fn ($log) => $this->present($log));
 
         $pdf = Pdf::loadView('admin.audit-log.pdf', [
             'logs'          => $logs,
@@ -82,10 +88,31 @@ class AdminAuditLogController extends Controller
     }
 
     /**
+     * Resolve an export time-range preset into [from, to] Carbon instances,
+     * or null when no (valid) preset was supplied.
+     *
+     * @return Carbon[]|null
+     */
+    private function resolvePeriod(?string $period): ?array
+    {
+        return match ($period) {
+            'month'  => [now()->startOfMonth(), now()->endOfDay()],
+            '2month' => [now()->subMonth()->startOfMonth(), now()->endOfDay()],
+            '3month' => [now()->subMonths(2)->startOfMonth(), now()->endOfDay()],
+            default  => null,
+        };
+    }
+
+    /**
      * Build the filtered audit-log query shared by the screen and the PDF
      * export. Eager-loads + ordering applied; pagination is NOT.
+     *
+     * When $dateRange is given (an export period preset), it sets the date
+     * window and supersedes the request's date_from / date_to inputs.
+     *
+     * @param  Carbon[]|null  $dateRange
      */
-    private function buildQuery(Request $request): Builder
+    private function buildQuery(Request $request, ?array $dateRange = null): Builder
     {
         $query = AuditLog::with(['user', 'auditable'])->latest('created_at')->latest('id');
 
@@ -99,11 +126,16 @@ class AdminAuditLogController extends Controller
         if ($request->filled('user_id') && $request->user_id !== 'all') {
             $query->where('user_id', $request->user_id);
         }
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
+        if ($dateRange !== null) {
+            // Export period preset — overrides any manual date_from / date_to.
+            $query->whereBetween('created_at', [$dateRange[0], $dateRange[1]]);
+        } else {
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
         }
         if ($request->filled('q')) {
             $term = $request->q;
@@ -141,17 +173,22 @@ class AdminAuditLogController extends Controller
     {
         $parts = [];
 
+        // Date window first: an export period preset wins over manual dates.
+        if ($range = $this->resolvePeriod($request->input('period'))) {
+            $labels  = ['month' => 'Bulan ini', '2month' => '2 bulan terakhir', '3month' => '3 bulan terakhir'];
+            $label   = $labels[$request->input('period')] ?? '';
+            $parts[] = $label . ' (' . $range[0]->translatedFormat('d M Y') . ' – ' . $range[1]->translatedFormat('d M Y') . ')';
+        } elseif ($request->filled('date_from') || $request->filled('date_to')) {
+            $from = $request->filled('date_from') ? Carbon::parse($request->date_from)->translatedFormat('d M Y') : '…';
+            $to   = $request->filled('date_to') ? Carbon::parse($request->date_to)->translatedFormat('d M Y') : '…';
+            $parts[] = "{$from} – {$to}";
+        }
         if ($request->has('af')) {
             $count = count((array) $request->input('actions', []));
             $parts[] = $count > 0 ? "{$count} jenis aksi" : 'tanpa aksi';
         }
         if ($request->filled('user_id') && $request->user_id !== 'all') {
             $parts[] = 'oleh ' . (User::find($request->user_id)?->name ?? 'pengguna');
-        }
-        if ($request->filled('date_from') || $request->filled('date_to')) {
-            $from = $request->filled('date_from') ? Carbon::parse($request->date_from)->translatedFormat('d M Y') : '…';
-            $to   = $request->filled('date_to') ? Carbon::parse($request->date_to)->translatedFormat('d M Y') : '…';
-            $parts[] = "{$from} – {$to}";
         }
         if ($request->filled('q')) {
             $parts[] = 'pencarian "' . $request->q . '"';
